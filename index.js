@@ -13,7 +13,7 @@ const append = x => xs => [x, ...xs];
 
 const path = x => `./node_modules/${x}/dist`;
 
-const toUpperCase = v => v.toUpperCase();
+// aqui va la recusividad
 const redus = xs => xs.reduce((acc, x)=> lift2(append, Task.of(x), ReaderTask(path(x)), acc), Task.of([]))
 
 const program = pipe(
