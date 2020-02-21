@@ -1,3 +1,4 @@
 const Task = require('./task');
+const List = require('./list');
 
-module.exports ={Task};
+module.exports ={Task, List};
