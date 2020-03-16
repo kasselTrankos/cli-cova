@@ -9,20 +9,20 @@ const {Just, Nothing} = Maybe;
 Maybe.prototype.chain = function(f) {
   return this.cata({
     Just: f,
-    Nothing: () => this
+    Nothing: Nothing
   });
 }
 
 // ap :: Apply f => f a ~> f (a -> b) -> f b
 Maybe.prototype.ap = function(that) {
-  console.log(that, '0999999')
   return this.cata({
-    Nothing: ()=> this,
-    Just: x => Maybe.Just(that.x(x))
+    Nothing: Nothing,
+    Just: x => that.cata({
+      Nothing: () => Nothing,
+      Just: c => Just(x)
+    })
   });
 }
-
-
 // map:: Functor f => f a ~>(a -> b) -> b 
 Maybe.prototype.map = function (f) {
   return this.cata({
