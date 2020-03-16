@@ -1,6 +1,6 @@
 const {Maybe} = require('./fp/monad');
 const {Just, Nothing} = Maybe;
-const {chain , composeK} = require('ramda');
+const {chain , composeK, pipe} = require('ramda');
 
 const multiply10 = x => Just(x * 10);
 const add20 = x => Just(x + 20);
@@ -23,4 +23,11 @@ console.group(c, ' Just.chain(Nothing).chain(Just) is Nothing');
 // chain always nothing
 const d = Just(90).chain(toNothing).chain(toNothing)
 console.group(d, ' Just.chain(Nothing).chain(Nothing) is Nothing' );
+
+const program = pipe(
+  Just,
+  chain(multiply10),
+  chain(add20)
+);
+console.log(program(90))
 

@@ -1,6 +1,7 @@
 const {Task, Maybe} = require('./fp/monad');
 const {tagged, taggedSum} = require('daggy');
 const {readdir, statSync, existsSync} = require('fs');
+const path = require("path");
 const {pipe, map, chain, ap} = require('ramda');
 const PATH = './node_modules'
 const SHOW_HIDDEN = false;
@@ -24,7 +25,7 @@ const appends = x => xs => [...x, ...xs];
 // const just = compose(liftF, Just)
 // const nothing = liftF(Nothing)
 const isDir = path => statSync(path).isDirectory() ? Just(path) : Nothing;
-const isHidden = path => console.log(path, /^\./.test(path)) || /^\./.test(path) ? Nothing : Just(path);
+const isHidden = p => /^\./.test(path.basename(p)) ? Nothing : Just(p);
 const exists = path => existsSync(path) ? Just(path) : Nothing;
 const read = dir => new Task((reject, resolve)=> {
   readdir(dir, function(err, list = []) {
@@ -36,12 +37,15 @@ const readDir = xs => xs.reduce((acc, x) => lift(appends, read(x), acc), Task.of
 // const traverse = xs => xs.reduce((acc, x) => lift2(append, Task.of(x), read(x), acc), Task.of([]));
 const DIRS = ['./node_modules', '/Users/aotn', '/Users/aotn/GEMA/components'];
 const car = pipe(
-  compose(chain(isDir), exists),
+  exists,
+  chain(isDir),
   toTask,
   // readDir,
   );
 const onlyDir = pipe(
-  compose(chain(isDir), exists),
+  exists,
+  chain(isDir),
+  chain(isHidden),
   toArray
 );
 const truck = pipe(
