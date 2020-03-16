@@ -36,29 +36,29 @@ const read = dir => new Task((reject, resolve)=> {
 const readDir = xs => xs.reduce((acc, x) => lift(appends, read(x), acc), Task.of([]));
 // const traverse = xs => xs.reduce((acc, x) => lift2(append, Task.of(x), read(x), acc), Task.of([]));
 const DIRS = ['./node_modules', '/Users/aotn', '/Users/aotn/GEMA/components'];
-const car = pipe(
-  exists,
-  chain(isDir),
-  toTask,
-  // readDir,
-  );
-const onlyDir = pipe(
+const onlyDirs = x => x.ap(Task.of(x=> x.map(onlyDir).flat()));
+const clearData = pipe(
   exists,
   chain(isDir),
   chain(isHidden),
+); 
+const car = pipe(
+  clearData,
+  toTask,
+  chain(readDir),
+  onlyDirs
+  // readDir,
+  );
+const onlyDir = pipe(
+  clearData,
   toArray
 );
 const truck = pipe(
   chain(x => console.log(x, 'aaaaaaaa') || car(x)),
   map(x => console.log(x, '00000000') || x),
 );
-const ff = x => Task.of(x.map(onlyDir));
-
-// caminon de camniones
 const program = pipe(
   map(car),
-  map(chain(readDir)),
-  map(x => x.ap(Task.of(x=> x.map(onlyDir).flat()))),
   // map(ap(Task.of(car))),
   // map(readDir)
   // map(ap(Task.of(2))),
@@ -67,4 +67,3 @@ const program = pipe(
 const k = program(DIRS);
 k.map(t => t.fork(d => console.log('error', d), x => console.log('gol', x)))
   // .fork(console.log, console.log)
-console.log(k, '000000000')
