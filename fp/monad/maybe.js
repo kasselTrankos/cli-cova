@@ -9,7 +9,7 @@ const {Just, Nothing} = Maybe;
 Maybe.prototype.chain = function(f) {
   return this.cata({
     Just: f,
-    Nothing: Nothing
+    Nothing: () => Nothing
   });
 }
 

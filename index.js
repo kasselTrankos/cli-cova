@@ -33,49 +33,52 @@ const {Just, Nothing} = Maybe;
 //     Nothing: Nothing
 //   })
 // });
-const toTask = maybe => maybe.cata({
-  Just: x => Task.of([x]),
+const toTask = maybe => console.log('Maybe', maybe) || maybe.cata({
+  Just: x => console.log(`Just(${x})`) || Task.of([x]),
   Nothing: () =>  Task.of([])
 });
 const lift2 =(f, a, b, c) => c.ap(b.ap(a.map(f)));
 const lift =(f, a, b) => b.ap(a.map(f));
-const toString = value => String(value);
+const append = x => xs => [...x, ...xs];
 // const just = compose(liftF, Just)
 // const nothing = liftF(Nothing)
 const isDir = path => statSync(path).isDirectory() ? Just(path) : Nothing;
-const exists = path => existsSync(path) ? Just(path) : Nothing;
-const isValidDir = path => existsSync(path) ? Just(path).ap(isDir(path)) : Nothing;
-// const transform = compose(naturalTransformTask, isValidDir, toString);
-const read = dir => new Task((reject, resolve)=> {
-  readdir(dir, function(err, list) {
-    console.log('files', list);
+const exists = path => console.log('E ->', path) || existsSync(path) ? Just(path) : Nothing;
+const read = dir => console.log(`read(${dir})`) || new Task((reject, resolve)=> {
+    readdir(dir, function(err, list = []) {
     return err ? reject(err) : resolve(list.map(x => `${PATH}/${x}`));
   });
 });
-const append = x => xs => [...x, ...xs];
-
-
-const path = x => `${PATH}/${x}`;
 
 // aqui va la recusividad
-const validDir = pipe(
+const readDir = xs =>  xs.reduce((acc, x)=> lift(append, read(x), acc), Task.of([]));
+// const readDir = xs =>  console.log('rere --->' , xs) || xs.reduce((acc, x)=> lift(append, read(`${x}/node_modules`), acc), Task.of([]));
+const car = pipe(
   exists,
   chain(isDir),
   toTask,
+  map(x => console.log(`CAR(${x})`) || x),
+  chain(readDir),
 );
-const redus = xs => xs.reduce((acc, x)=> lift2(append, Task.of(x), read(x), acc), Task.of([]))
-const onlyDir = xs => xs.reduce((acc, x)=> lift(append, validDir(x), acc), Task.of([]))
+const truck = pipe(
+  chain(car),
+  // chain(onlyDir),
+);
+
+// caminon de camniones
 const program = pipe(
-  read,
-  chain(onlyDir),
+  map(x => console.log(`car(${x})`) || car(x)),
+  // map(console.log),
+  
+  // chain(onlyDir),
+  // map(truck),
   // validDir,
   // chain(redus),
   // map(x=> x.flatMap(x=> x))
-  
 );
-// const kk = validDir('./node_modules')
-//   .fork(e => console.log('soy el error: ', e), a=> console.log('so empty', a));
 // const j = transform('./node_moduleds')
 //   .fork(e => console.error('soy el error', e), x => console.log(x, '0000'));
-const h = program(PATH)
-  .fork(c => console.error('00d0dd', c), (data) => console.log('0das0dassad', data));
+// const h = program(PATH)
+//   .fork(c => console.error('00d0dd', c), (data) => console.log('files is ->: ', data));
+const kk = program(['./node_modules'])
+  .fork(e => console.log('soy el error: ', e), a=> console.log('folders are ---> ', a));
