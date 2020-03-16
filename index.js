@@ -4,81 +4,62 @@ const {readdir, statSync, existsSync} = require('fs');
 const {pipe, map, chain, ap} = require('ramda');
 const PATH = './node_modules'
 // lamdas
-const liftF = command => Suspend(command, Pure);
 const compose = (f, g) => x => f(g(x))
-const kCompose = (f, g) => x => f(x).chain(g);
-const I = x => x;
 
 // const Maybe = taggedSum('Maybe', {Just: ['x'], Nothing: []});
 const {Just, Nothing} = Maybe;
-// Return(a: A): Free[F[_], A] -- Sequential  Pure
-// Suspend(f: F[Free[F,A]]): Free[F[_], A] --- Parallel
-// const Free = taggedSum('Free', {Pure: ['x'], Suspend: ['f', 'x']});
-// const {Suspend, Pure} = Free;
-// Free.of = Pure;
-// Free.prototype.chain = function (g){
-//   return this.cata({
-//     Pure: x => g(x),
-//     Suspend: (x, f) =>  Suspend(x, kCompose(f, g))
-//   });
-// }
-
-// Free.prototype.map = function(f) {
-//   return this.chain(a => Free.of(f(a)))
-// }
-// const freeMaybe = free => free.cata({
-//   Pure: I,
-//   Suspend: (m, q) => m.cata({
-//     Just: x => runMaybe(q(x)),
-//     Nothing: Nothing
-//   })
-// });
-const toTask = maybe => console.log('Maybe', maybe) || maybe.cata({
-  Just: x => console.log(`Just(${x})`) || Task.of([x]),
-  Nothing: () =>  Task.of([])
+const toTask = maybe =>  maybe.cata({
+  Just: x => Task.of([x]),
+  Nothing: () => new Task(reject=> reject([]))
 });
-const lift2 =(f, a, b, c) => c.ap(b.ap(a.map(f)));
-const lift =(f, a, b) => b.ap(a.map(f));
-const append = x => xs => [...x, ...xs];
+const toArray = maybe => maybe.cata({
+  Just: x => [x],
+  Nothing: () => []
+
+});
+const lift2 = (f, a, b, c) => c.ap(b.ap(a.map(f)))
+const lift = (f, a, b) => b.ap(a.map(f));
+const appends = x => xs => [...x, ...xs];
 // const just = compose(liftF, Just)
 // const nothing = liftF(Nothing)
 const isDir = path => statSync(path).isDirectory() ? Just(path) : Nothing;
-const exists = path => console.log('E ->', path) || existsSync(path) ? Just(path) : Nothing;
-const read = dir => console.log(`read(${dir})`) || new Task((reject, resolve)=> {
-    readdir(dir, function(err, list = []) {
-    return err ? reject(err) : resolve(list.map(x => `${PATH}/${x}`));
+const exists = path => existsSync(path) ? Just(path) : Nothing;
+const read = dir => new Task((reject, resolve)=> {
+  console.log('DIR', dir)
+  readdir(dir, function(err, list = []) {
+    console.log('LIST', list)
+    return err ? reject(err) : resolve(list.map(x => `${dir}/${x}`));
   });
 });
-
 // aqui va la recusividad
-const readDir = xs =>  xs.reduce((acc, x)=> lift(append, read(x), acc), Task.of([]));
+const readDir = xs => console.log(xs, 'eeems') || xs.reduce((acc, x) => lift(appends, read(x), acc), Task.of([]));
+const getHead = xs => {
+  const [head, tail] = xs;
+  console.log(head, tail);
+  return head;
+}
 // const readDir = xs =>  console.log('rere --->' , xs) || xs.reduce((acc, x)=> lift(append, read(`${x}/node_modules`), acc), Task.of([]));
+  
+const its = ['./node_moduleds', '/Users/aotn'];
+// const traverse = xs => xs.reduce((acc, x) => lift2(append, Task.of(x), read(x), acc), Task.of([]));
 const car = pipe(
-  exists,
-  chain(isDir),
+  compose(chain(isDir), exists),
   toTask,
-  map(x => console.log(`CAR(${x})`) || x),
-  chain(readDir),
+  // toArray,
+  // readDir,
 );
 const truck = pipe(
-  chain(car),
-  // chain(onlyDir),
+  chain(x => console.log(x, 'aaaaaaaa') || car(x)),
+  map(x => console.log(x, '00000000') || x),
 );
 
 // caminon de camniones
 const program = pipe(
-  map(x => console.log(`car(${x})`) || car(x)),
-  // map(console.log),
-  
-  // chain(onlyDir),
-  // map(truck),
-  // validDir,
-  // chain(redus),
-  // map(x=> x.flatMap(x=> x))
+  map(car),
+  // map(ap(Task.of(2))),
+  // getHead,
 );
-// const j = transform('./node_moduleds')
-//   .fork(e => console.error('soy el error', e), x => console.log(x, '0000'));
-// const h = program(PATH)
-//   .fork(c => console.error('00d0dd', c), (data) => console.log('files is ->: ', data));
-const kk = program(['./node_modules'])
-  .fork(e => console.log('soy el error: ', e), a=> console.log('folders are ---> ', a));
+const k = program(its);
+k.map(t => t.fork(d => console.log('error', d), x => console.log('gol', x)))
+  // .fork(console.log, console.log)
+// console.log(k, '000000000')
