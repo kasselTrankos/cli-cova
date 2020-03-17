@@ -46,10 +46,11 @@ const car = (T, dirs) =>
 	sequence(T, dirs.map(folder))
 
 const bicycle = curry(car);
-
+const trunk = pipe(chain(bicycle(Task)));
 
 const program = pipe(
 	bicycle(Task),
+	trunk
 	// map(map(x=> x+ 'jjfifjif'))
 	// chain(map(clearData)),
 	// map(x => console.log(x, '4444444444444'))
@@ -59,4 +60,4 @@ const program = pipe(
 
 const m = program(DIRS);
 m.fork(console.error, console.log)
-// console.log(m)
+console.log(m)
