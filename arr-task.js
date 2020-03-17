@@ -4,12 +4,17 @@ const path = require("path");
 const {pipe, map, chain, ap, curry} = require('ramda');
 const {readdir, statSync, existsSync} = require('fs');
 
-const DIRS = ['./node_modules', '/Users/aotn', '/Ufsers/aotn/GEMA/components'];
+const DIRS = ['./node_modules', '/Users/aotn', '/Users/aotn/GEMA/components'];
 
 const {Just, Nothing} = Maybe;
 const toTask = maybe => maybe.cata({
-  Just: x => Task.of([x]),
+  Just: x => Task.of(x),
   Nothing: () => Task.of([])
+});
+const read = dir => console.log('00000000', dir) || new Task((reject, resolve)=> {
+  readdir(dir, function(err, list = []) {
+    return err ? reject(err) : resolve(list.map(x => `${dir}/${x}`));
+  });
 });
 const appends = x => xs => [...x, ...xs];
 const lift2 = (f, a, b) => b.ap(a.map(f));
@@ -20,7 +25,7 @@ const exists = path => existsSync(path) ? Just(path) : Nothing;
 const traverse = (T, xs) => xs.reduce((acc, x) => lift2(appends, Task.of(x),  acc), T.of([]));
 const sequence = (T, xs) => xs.reduce((acc, x) => lift2(appends, x,  acc), T.of([]));
 // car
-//   :: [Int] -> Task e [User]
+//   :: [String] -> Task e [DIR]
 const car = (T, dirs) =>
 	sequence(T, dirs.map(clearData))
 
@@ -31,6 +36,8 @@ const clearData = pipe(
   chain(isDir),
 	chain(isHidden),
 	toTask,
+	chain(read)
+	// chain(map(read)),
 ); 
 
 
