@@ -9,13 +9,14 @@ const {Just, Nothing} = Maybe;
 
 // :: Maybe -> Task
 const toTask = maybe => maybe.cata({
-  Just: x => Task.of(x),
-  Nothing: () => Task.of([])
+	Just: x => Task.of(x),
+	
+  Nothing: () => Task.of('')
 });
 // :: String -> Task
 const read = dir => new Task((reject, resolve)=> {
   readdir(dir, function(err, list = []) {
-    return err ? reject(err) : resolve(list.map(x => `${dir}/${x}`));
+    return err ? resolve([]) : resolve([ ...list.map(x => `${dir}/${x}`)]);
   });
 });
 const appends = x => xs => [...x, ...xs];
@@ -24,7 +25,7 @@ const lift2 = (f, a, b) => b.ap(a.map(f));
 const isDir = path => statSync(path).isDirectory() ? Just(path) : Nothing;
 
 // :: String -> Maybe
-const isHidden = p => /^\./.test(path.basename(p)) ? Nothing : Just(p);
+const isHidden = dir => /^\./.test(path.basename(dir)) ? Nothing : Just(dir);
 
 // :: String -> Maybe
 const exists = path => existsSync(path) ? Just(path) : Nothing;
@@ -42,14 +43,18 @@ const folder = pipe(
 	chain(read),
 ); 
 //  :: [String] -> Task e [DIR]
-const car = (T, dirs) =>
-	sequence(T, dirs.map(folder))
+const car = (T, dirs) => sequence(T, dirs.map(folder))
 
 const bicycle = curry(car);
-const trunk = pipe(chain(bicycle(Task)));
+const moto = bicycle(Task);
+
+const trunk = pipe(
+	map(map(x => `${x}/node_modules`)),
+	chain(moto)
+);
 
 const program = pipe(
-	bicycle(Task),
+	moto,
 	trunk
 	// map(map(x=> x+ 'jjfifjif'))
 	// chain(map(clearData)),
