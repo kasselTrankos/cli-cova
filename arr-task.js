@@ -10,11 +10,11 @@ const {Just, Nothing} = Maybe;
 // :: Maybe -> Task
 const toTask = maybe => maybe.cata({
 	Just: x => Task.of(x),
-	
   Nothing: () => Task.of('')
 });
 // :: String -> Task
 const read = dir => new Task((reject, resolve)=> {
+	console.log(dir, '00000000000');
   readdir(dir, function(err, list = []) {
     return err ? resolve([]) : resolve([ ...list.map(x => `${dir}/${x}`)]);
   });
@@ -43,19 +43,19 @@ const folder = pipe(
 	chain(read),
 ); 
 //  :: [String] -> Task e [DIR]
-const car = (T, dirs) => sequence(T, dirs.map(folder))
+const wheel = (T, dirs) => sequence(T, dirs.map(folder))
 
-const bicycle = curry(car);
+const bicycle = curry(wheel);
 const moto = bicycle(Task);
 
-const trunk = pipe(
+const car = pipe(
 	map(map(x => `${x}/node_modules`)),
 	chain(moto)
 );
 
 const program = pipe(
 	moto,
-	trunk
+	car
 	// map(map(x=> x+ 'jjfifjif'))
 	// chain(map(clearData)),
 	// map(x => console.log(x, '4444444444444'))
@@ -64,5 +64,5 @@ const program = pipe(
 );
 
 const m = program(DIRS);
-m.fork(console.error, console.log)
+m.fork(e => console.error('error : ', e), console.log)
 console.log(m)
