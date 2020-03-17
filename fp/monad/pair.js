@@ -15,6 +15,10 @@ const Pair = T => {
 
     return Pair_(this._1.concat(that._1), that._2)
   }
+  Pair_.prototype.reduce = function (f, a) {
+
+    return Pair_(this._1, this._2.reduce(f, a))
+  }
 
   Pair_.of = x => Pair_(T.empty(), x)
 
