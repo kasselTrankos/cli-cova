@@ -48,7 +48,7 @@ const bicycle = curry(wheel);
 const moto = bicycle(Task);
 
 const car = pipe(
-	map(map(x => `${x}/node_modules`)),
+	map(map(x => `${x}/src`)),
 	chain(moto)
 );
 
