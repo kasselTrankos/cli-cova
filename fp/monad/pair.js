@@ -2,8 +2,9 @@ const {tagged} = require('daggy');
 const Pair = T => {
   const Pair_ = tagged('Pair', ['_1', '_2']);
 
+  // map :: Functor => f a ~> (a -> b) -> f b
   Pair_.prototype.map = function (f) {
-    return Pair_(this._1, f(this._2))
+    return Pair_(this._1, f(this._2));
   }
   
   Pair_.prototype.ap = function (fs) {
@@ -11,14 +12,10 @@ const Pair = T => {
   }
   
   Pair_.prototype.chain = function (f) {
-    
-    console.log(this, '33333333333333333');
     const that = f(this._2)
-
     return Pair_(this._1.concat(that._1), that._2)
   }
   Pair_.prototype.reduce = function (f, a) {
-
     return Pair_(this._1, this._2.reduce(f, a))
   }
 

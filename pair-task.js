@@ -10,7 +10,7 @@ const {Just, Nothing} = Maybe;
 Array.empty = () => [];
 const State = Pair(Array);
 const I = x => x;
-
+const lift2 = (f, a, b) => b.ap(a.map(f));
 // :: Maybe -> Task
 const toTask = maybe => maybe.cata({
 	Just: x => Task.of(x),
@@ -24,7 +24,7 @@ const read = dir => new Task((_, resolve)=> {
   });
 });
 const appends = x => xs => [...x, ...xs];
-const lift2 = (f, a, b) => b.ap(a.map(f));
+
 // :: String -> Maybe
 const isDir = path => statSync(path).isDirectory() ? Just(path) : Nothing;
 
@@ -35,7 +35,7 @@ const isHidden = dir => /^\./.test(path.basename(dir)) ? Nothing : Just(dir);
 const exists = path => existsSync(path) ? Just(path) : Nothing;
 
 // const traverse = (T, xs) => xs.reduce((acc, x) => lift2(appends, Task.of(x),  acc), T.of([]));
-const sequence = (T, xs) => console.log(xs, '0000000000') || xs.reduce((acc, x) => lift2(appends, x,  acc), T.of([]));
+const sequence = (T, xs) => xs.reduce((acc, x) => lift2(appends, x,  acc), T.of([]));
 
 const valid = pipe(
   exists,
@@ -50,7 +50,7 @@ const folder = pipe(
     
 //  :: [String] -> Task e [DIR]
 const wheel = (T, dirs) => sequence(T, dirs.map(map(folder)));
-const oneWheel = (T, dirs) => console.log(dirs, '22222222222222') || sequence(T, dirs.map(folder));
+const oneWheel = (T, dirs) => sequence(T, dirs.map(folder));
 const bicycle = curry(wheel);
 const moto = bicycle(Task);
 const car = pipe(
@@ -64,7 +64,7 @@ const program = pipe(
   car
 );
 const d = State.of(DIRS) 
-//!!! :: Task -> Pair._2 -> Array
+//!!! :: Task -> Pair._2 -> Array ---- esto es l o que debiera
 // siendo :: Pair -> Task -> Array
 const k = program(d);
 console.log(k._2)
