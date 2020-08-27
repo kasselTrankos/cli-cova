@@ -33,11 +33,11 @@ Maybe.prototype.map = function (f) {
 
 Maybe.map = Maybe.prototype.map;
 
-// alt :: Alternative f =>...s
+// alt :: Alt f => f a ~> f a -> f a
 Maybe.prototype.alt = function (that) {
   return this.cata({
-    Just: () => this,
-    Nothing: () => that,
+    Just: _ => this,
+    Nothing: _ => that,
   });
 }
 

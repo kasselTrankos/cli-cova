@@ -74,4 +74,9 @@ Task.prototype.map = function(f) {
   })
 }
 
+// alt :: Alt f => f a ~> f a -> f a
+Task.prototype.alt = function (that) {
+  return new Task((rej, res) => this.fork(_ => that.fork(rej, res), res));
+}
+
 module.exports = Task;
