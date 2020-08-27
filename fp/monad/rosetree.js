@@ -10,22 +10,28 @@ RoseTree.of = function(x) {
 }
 
 // ap :: Apply f => f a ~> f (a -> b) -> f b
-RoseTree.prototype.ap = function({node: f, forest: fs}) {
+RoseTree.prototype.ap = function(b) {
   const {node, forest} = this;
+  const {node: f, forest: fs} = b;
+  // console.log('AP:  this', this, 'b:', b, 'typeof',fs ,node);
+  // console.log(f.toString(), '00000', fs, node, forest, this, fs.toString());
   return new RoseTree(f(node), [].concat(
-    forest.map(x => x.map(f)), fs ?  fs.map(m =>this.ap(m)) : []
+    forest ? forest.map(x => x.map(f)) : [], 
+    fs ? fs.map(m => m instanceof RoseTree ? this.ap(m) : RoseTree.of(m)) : []
   ));
 }
+// map :: Functor f => f a ~> (a -> b) -> f b
+RoseTree.prototype.map = function(f) {
+  return new RoseTree(f(this.node), this.forest.map(x=> x.map(f)));
+}
+
+
 // chain :: Cahin m => m a ~> (a -> m b)-> m b
 RoseTree.prototype.chain = function(f) {
   const { node: x, forest: xs } = f(this.node);
   return new RoseTree(x, [].concat(xs, this.forest.map(x => x.chain(f))));
 }
 
-// map :: Functor f => f a ~> (a -> b) -> f b
-RoseTree.prototype.map = function(f) {
-  return new RoseTree(f(this.node), this.forest.map(f));
-}
 // concat :: Semogroup a => a ~> a -> a
 RoseTree.prototype.concat = function(b) {
   return new RoseTree(this.node, [].concat(this.forest, b))
