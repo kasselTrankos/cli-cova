@@ -20,7 +20,7 @@ const paralleliseTaskArray = xs => console.log(xs) || xs; //sequence(Task, xs.ma
 // :: RoseTree -> Task [] [RoseTree]
 const read = dir => new Task((_, resolve)=> {
   readdir(dir, function(err, list = []) {
-    return err ? resolve([]) : resolve([ ...list.map(x => `${dir}/${x}`)]);
+    return err ? resolve([]) : resolve([ ...list.map(x => `${x}`)]);
   });
 });
 
@@ -29,7 +29,7 @@ const read = dir => new Task((_, resolve)=> {
 
 
 const dir = RoseTree.of('./node_modules');
-const toRoseTree = xs => Task.of(xs.map(x => RoseTree.of(x))); 
+const toRoseTree = xs => Task.of(dir.concat(xs.map(x => RoseTree.of(x)))); 
 
 
 const program = pipe(
@@ -42,6 +42,9 @@ const data =
   program(dir)
   .fork(e => console.error('error : ', e), console.log);
 
+
+  // Pienso que el siguiente paso esta en usar el sequence 
+  // Task Array -> 
 
 
 
