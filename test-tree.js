@@ -16,29 +16,11 @@ const fm = RoseTree.of(2);
 // console.log(bb);
 
 // hagamos el lift nuestro adorado anscensor
-const c = lift2(x => y => `${x} + ${y}`)(a)(ab);
-console.log(c);
+const c = lift2(x => y => `${x} plus  ${y}`)(a)(ab);
 
-const Identity = daggy.tagged('Identity', ['x'])
+const n = c.reduce((acc, x)=> [...acc, x], []);
 
-// map :: Identity a ~> (a -> b)
-//                   -> Identity b
-Identity.prototype.map = function (f) {
-  return new Identity(f(this.x))
-}
-
-// ap :: Identity a ~> Identity (a -> b)
-//                  -> Identity b
-Identity.prototype.ap = function (b) {
-  return new Identity(b.x(this.x))
-}
-
-// Identity(5)
-const t = lift2(x => y => x + y, Identity(2)
-     , Identity(3))
-
-// console.log(t);
-
+console.log(c, '\n', n);
 
 // const example = new RoseTree( 1, [
 //   new RoseTree(2, [RoseTree.of(9), new RoseTree(3, [
@@ -48,11 +30,6 @@ const t = lift2(x => y => x + y, Identity(2)
 // ]);
 // const example = new RoseTree(1, [new RoseTree(2, [new RoseTree(3, [RoseTree.of(4)]), new RoseTree(5, [RoseTree.of(12)])])]);
 
-// const reduce = xs => {
-//   const red = (acc, x) => x.forest.reduce(red, [...acc, x.node]);
 
-//   return xs.forest.reduce(red, [xs.node]);
-// } 
-// const n = example.reduce((acc, x)=> [...acc, x], []);
 // console.log(n, '1111111111', reduce(example));
 

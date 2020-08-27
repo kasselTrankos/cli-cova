@@ -13,8 +13,6 @@ RoseTree.of = function(x) {
 RoseTree.prototype.ap = function(b) {
   const {node, forest} = this;
   const {node: f, forest: fs} = b;
-  // console.log('AP:  this', this, 'b:', b, 'typeof',fs ,node);
-  // console.log(f.toString(), '00000', fs, node, forest, this, fs.toString());
   return new RoseTree(f(node), [].concat(
     forest ? forest.map(x => x.map(f)) : [], 
     fs ? fs.map(m => m instanceof RoseTree ? this.ap(m) : RoseTree.of(m)) : []
@@ -36,6 +34,8 @@ RoseTree.prototype.chain = function(f) {
 RoseTree.prototype.concat = function(b) {
   return new RoseTree(this.node, [].concat(this.forest, b))
 }
+
+
 // reduce :: Foldable f => f a ~> ((b, a) -> b, b) -> b
 RoseTree.prototype.reduce = function (f, acc) {
   return this.forest.reduce((acc, rt) => rt.reduce(f, acc), f(acc, this.node))
