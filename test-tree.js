@@ -6,7 +6,7 @@ const sequence = (T, xs) => xs.reduce((acc, x) => lift2(append, T.of(x),  acc), 
 
 
 const tree = new RoseTree(1, [RoseTree.of(2), new RoseTree(3, [RoseTree.of(4)])]);
-const a = new RoseTree('a', [RoseTree.of('a1')]);
+const a = new RoseTree('a', [RoseTree.of('a1'), new RoseTree('c', [RoseTree.of('c1')])]);
 const ab = new RoseTree('ab', [ new RoseTree('ab1', [RoseTree.of('ab2')]) ]);
 const b = RoseTree.of(21);
 const fm = RoseTree.of(2);
@@ -20,7 +20,7 @@ const c = lift2(x => y => `${x} plus  ${y}`)(a)(ab);
 
 const n = c.reduce((acc, x)=> [...acc, x], []);
 
-console.log(c, '\n', n);
+console.log(n);
 
 // const example = new RoseTree( 1, [
 //   new RoseTree(2, [RoseTree.of(9), new RoseTree(3, [

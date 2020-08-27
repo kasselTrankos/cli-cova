@@ -38,7 +38,7 @@ RoseTree.prototype.concat = function(b) {
 
 // reduce :: Foldable f => f a ~> ((b, a) -> b, b) -> b
 RoseTree.prototype.reduce = function (f, acc) {
-  return this.forest.reduce((acc, rt) => rt.reduce(f, acc), f(acc, this.node))
+  return this.forest.reduce((acc, xs) => xs.reduce(f, acc), f(acc, this.node))
 }
 
 module.exports = RoseTree;
