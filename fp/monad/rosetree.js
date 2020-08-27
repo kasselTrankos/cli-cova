@@ -4,7 +4,7 @@ function RoseTree(node, forest) {
   this.node = node;
   this.forest = forest; 
 }
-// ap :: Applicative f => f a ~> a -> f a
+// of :: Applicative f => f a ~> a -> f a
 RoseTree.of = function(x) {
   return new RoseTree(x, []);
 }
@@ -13,16 +13,15 @@ RoseTree.of = function(x) {
 RoseTree.prototype.ap = function({node: f, forest: fs}) {
   const {node, forest} = this;
   return new RoseTree(f(node), [].concat(
-    forest.map(x => x.map(f)),
-    fs.map(m => this.ap(m))
+    forest.map(x => x.map(f)), fs ?  fs.map(m =>this.ap(m)) : []
   ));
 }
 // chain :: Cahin m => m a ~> (a -> m b)-> m b
 RoseTree.prototype.chain = function(f) {
   const { node: x, forest: xs } = f(this.node);
-  return new RoseTree(x, [].concat(xs, this.forest.map(x => x.chain(f))
-  ))
+  return new RoseTree(x, [].concat(xs, this.forest.map(x => x.chain(f))));
 }
+
 // map :: Functor f => f a ~> (a -> b) -> f b
 RoseTree.prototype.map = function(f) {
   return new RoseTree(f(this.node), this.forest.map(f));

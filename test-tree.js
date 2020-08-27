@@ -5,11 +5,11 @@ const sequence = (T, xs) => xs.reduce((acc, x) => lift2(append, T.of(x),  acc), 
 
 
 const tree = new RoseTree(1, [RoseTree.of(2), new RoseTree(3, [RoseTree.of(4)])]);
-const tree_1 = new RoseTree(1, [RoseTree.of(2), RoseTree.of(90)])
+const tree_1 = new RoseTree(1, [RoseTree.of(2), RoseTree.of(3)])
 
-console.log(tree.map(x=> x.node || x));
-const b = tree_1.ap(new RoseTree(x=> x +10, [RoseTree.of(x  => x +1290)]))
-console.log(b);
+// console.log(tree.map(x=> x.node || x));
+const b = tree_1.ap(new RoseTree(x=> x, [RoseTree.of(x  => x + 3), RoseTree.of(x  => x + 4)]))
+console.log(b.forest[2], b.forest[3], b);
 
 // const example = new RoseTree( 1, [
 //   new RoseTree(2, [RoseTree.of(9), new RoseTree(3, [
@@ -17,13 +17,13 @@ console.log(b);
 //   ])]),
   
 // ]);
-const example = new RoseTree(1, [new RoseTree(2, [new RoseTree(3, [RoseTree.of(4)]), new RoseTree(5, [RoseTree.of(12)])])]);
+// const example = new RoseTree(1, [new RoseTree(2, [new RoseTree(3, [RoseTree.of(4)]), new RoseTree(5, [RoseTree.of(12)])])]);
 
-const reduce = xs => {
-  const red = (acc, x) => x.forest.reduce(red, [...acc, x.node]);
+// const reduce = xs => {
+//   const red = (acc, x) => x.forest.reduce(red, [...acc, x.node]);
 
-  return xs.forest.reduce(red, [xs.node]);
-} 
-const n = example.reduce((acc, x)=> console.log(x, acc.concat) || [...acc, x], []);
-console.log(n, '1111111111', reduce(example));
+//   return xs.forest.reduce(red, [xs.node]);
+// } 
+// const n = example.reduce((acc, x)=> [...acc, x], []);
+// console.log(n, '1111111111', reduce(example));
 
