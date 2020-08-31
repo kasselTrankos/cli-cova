@@ -4,7 +4,7 @@ const {pipe, map, chain, ap, curry} = require('ramda');
 const {readdir, lstat, statSync, existsSync} = require('fs');
 const lift2 = (f, a, b) => b.ap(a.map(f));
 const I = x => x;
-const append = x => xs => [x, ...xs];
+const append = x => xs => [...x, ...xs];
 
 // :: toTask => Array -> Task []
 const toTask = fn => xs => sequence(Task, fn, xs);
@@ -15,16 +15,16 @@ const prop = key => obj => obj[key];
 // :: isDirectory String -> Task String
 const isDirectory = path => new Task((reject, resolve) => lstat(path, (e, stats) =>
   (e || !stats.isDirectory()) 
-    ? reject(e)
-    : resolve(path)
+    ? resolve([])
+    : resolve([path])
 ));
 
 // :: setRoseTree String -> RoseTree
 const setRoseTree = x => RoseTree.of(x);
 
 // :: read String -> Task [String]
-const read = dir => new Task((_, resolve)=> {
-  readdir(dir, (err, list = []) => err ? resolve([]) : resolve([ ...list.map(x => `${dir}/${x}`)]));
+const read = parent => new Task((_, resolve)=> {
+  readdir(parent, (err, list = []) => err ? resolve([]) : resolve([ ...list.map(x => `${parent}/${x}`)]));
 });
 
 const toRoseTree = parent => xs => Task.of(parent.concat(xs.map(x => RoseTree.of(x)))); 
@@ -46,8 +46,6 @@ const program = dir => pipe(
   getNode,
   read,
   add(dir),
-  // withParent(dir)
-  // add
 )(dir);
 // const rerun = pipe(
 //   setRoseTree,
