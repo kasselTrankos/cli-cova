@@ -1,11 +1,15 @@
 const {Task, Maybe, RoseTree} = require('./fp/monad');
+const { Nothing, Just} = Maybe;
 const {pipe, map, chain, ap, curry} = require('ramda');
 const {readdir, lstat, statSync, existsSync} = require('fs');
-const lift2 = (f, a, b) => console.log(a, b) || b.ap(a.map(f));
+const lift2 = (f, a, b) => b.ap(a.map(f));
 const I = x => x;
 const append = x => xs => [x, ...xs];
 
-// :: prop String -> Object -> Any
+// :: toTask => Array -> Task []
+const toTask = fn => xs => sequence(Task, fn, xs);
+
+// :: prop => String -> Object -> Any
 const prop = key => obj => obj[key];
 
 // :: isDirectory String -> Task String
@@ -14,61 +18,41 @@ const isDirectory = path => new Task((reject, resolve) => lstat(path, (e, stats)
     ? reject(e)
     : resolve(path)
 ));
-const sequence = (T, xs) => xs.reduce((acc, x) => lift2(append, isDirectory(x),  acc), T.of([]));
-const { Nothing, Just} = Maybe;
 
-
-// :: Maybe String -> Task String String
-// const toTask = maybe => maybe.cata({
-// 	Just: x => Task.of(x),
-//   Nothing: () => Task.of('')
-// });
-
-
-
-const getNode = prop('node');
-
-// :: String -> Maybe
-const isDir = path => statSync(path).isDirectory() ? rerun(path) : Nothing;
-
-
-const toTask = dirs => sequence(Task, dirs);
+// :: setRoseTree String -> RoseTree
 const setRoseTree = x => RoseTree.of(x);
-const validateDir = pipe(
-  toTask
-);
+
+// :: read String -> Task [String]
+const read = dir => new Task((_, resolve)=> {
+  readdir(dir, (err, list = []) => err ? resolve([]) : resolve([ ...list.map(x => `${dir}/${x}`)]));
+});
+
+const toRoseTree = parent => xs => Task.of(parent.concat(xs.map(x => RoseTree.of(x)))); 
+
+const sequence = (T, fn, xs) => xs.reduce((acc, x) => lift2(append, fn(x),  acc), T.of([]));
+const getNode = prop('node');
 
 
 // :: String -> Task [RoseTree]
-const toRoseTree = parent => xs => Task.of(parent.concat(xs.map(x => RoseTree.of(x)))); 
-// :: RoseTree -> Task [] [RoseTree]
-const read = dir => new Task((_, resolve)=> {
-  readdir(dir, (err, list = []) => err ? resolve([]) : resolve([ ...list.map(x => `${x}`)]));
-});
 
-
-const add = pipe(
-  chain(validateDir),
-  // chain(toRoseTree(dir)),
+const add = dir => pipe(
+  chain(toTask(isDirectory)),
+  chain(toRoseTree(dir)),
 );
-
-
-
-
-
 
 const dir = RoseTree.of('./node_modules');
 
-
-const program = pipe(
+const program = dir => pipe(
   getNode,
   read,
-  add
-);
-const rerun = pipe(
-  setRoseTree,
-  program
-);
+  add(dir),
+  // withParent(dir)
+  // add
+)(dir);
+// const rerun = pipe(
+//   setRoseTree,
+//   program
+// );
 
 const data = 
   program(dir)
