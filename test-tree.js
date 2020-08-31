@@ -1,41 +1,73 @@
 const {Task, Maybe, RoseTree} = require('./fp/monad');
 const {pipe, map, chain, ap, curry} = require('ramda');
-const {readdir, statSync, existsSync} = require('fs');
-const lift2 = f => a => b => b.ap(a.map(f));
+const {readdir, lstat, statSync, existsSync} = require('fs');
+const lift2 = (f, a, b) => console.log(a, b) || b.ap(a.map(f));
+const I = x => x;
 const append = x => xs => [x, ...xs];
-const sequence = (T, xs) => xs.reduce((acc, x) => lift2(append, T.of(x),  acc), T.of([]));
+
+// :: prop String -> Object -> Any
+const prop = key => obj => obj[key];
+
+// :: isDirectory String -> Task String
+const isDirectory = path => new Task((reject, resolve) => lstat(path, (e, stats) =>
+  (e || !stats.isDirectory()) 
+    ? reject(e)
+    : resolve(path)
+));
+const sequence = (T, xs) => xs.reduce((acc, x) => lift2(append, isDirectory(x),  acc), T.of([]));
 const { Nothing, Just} = Maybe;
 
 
 // :: Maybe String -> Task String String
-const toTask = maybe => maybe.cata({
-	Just: x => Task.of(x),
-  Nothing: () => Task.of('')
-});
+// const toTask = maybe => maybe.cata({
+// 	Just: x => Task.of(x),
+//   Nothing: () => Task.of('')
+// });
 
-const prop = key => obj => obj[key];
+
+
 const getNode = prop('node');
-const paralleliseTaskArray = xs => console.log(xs) || xs; //sequence(Task, xs.map(x=> x))
 
+// :: String -> Maybe
+const isDir = path => statSync(path).isDirectory() ? rerun(path) : Nothing;
+
+
+const toTask = dirs => sequence(Task, dirs);
+const setRoseTree = x => RoseTree.of(x);
+const validateDir = pipe(
+  toTask
+);
+
+
+// :: String -> Task [RoseTree]
+const toRoseTree = parent => xs => Task.of(parent.concat(xs.map(x => RoseTree.of(x)))); 
 // :: RoseTree -> Task [] [RoseTree]
 const read = dir => new Task((_, resolve)=> {
-  readdir(dir, function(err, list = []) {
-    return err ? resolve([]) : resolve([ ...list.map(x => `${x}`)]);
-  });
+  readdir(dir, (err, list = []) => err ? resolve([]) : resolve([ ...list.map(x => `${x}`)]));
 });
+
+
+const add = pipe(
+  chain(validateDir),
+  // chain(toRoseTree(dir)),
+);
+
 
 
 
 
 
 const dir = RoseTree.of('./node_modules');
-const toRoseTree = xs => Task.of(dir.concat(xs.map(x => RoseTree.of(x)))); 
 
 
 const program = pipe(
   getNode,
   read,
-  chain(toRoseTree)
+  add
+);
+const rerun = pipe(
+  setRoseTree,
+  program
 );
 
 const data = 
@@ -44,6 +76,7 @@ const data =
 
 
   // Pienso que el siguiente paso esta en usar el sequence 
+  // recursive :: Task [Array] ->  Task [RoseTree] 
   // Task Array -> 
 
 

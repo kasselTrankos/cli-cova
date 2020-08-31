@@ -16,7 +16,7 @@ Task.of = function(x){
 // chain :: Chain m => m a ~> ( a -> m b) ->  m b
 Task.prototype.chain = function(f) {
   return new Task((reject, resolve) => {
-    this.fork(a=> reject(a), a => f(a).fork(reject, resolve)),
+    this.fork(a => reject(a), a => f(a).fork(reject, resolve)),
     this.cleanup
   });
 } 
