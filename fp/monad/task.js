@@ -1,3 +1,4 @@
+const {map, ap, alt, of, empty} = require('fantasy-land');
 var delayed = typeof setImmediate !== 'undefined'?  setImmediate
             : typeof process !== 'undefined'?       process.nextTick
             : /* otherwise */                       setTimeout
@@ -7,6 +8,10 @@ function Task(computation, complete) {
   this.cleanup = complete || function() {};
 }
 
+// empty :: Monoid m => () -> m
+Task.empty = Task[empty] = function() {
+  return Task.of();
+}
 
 // of :: Applicative f => f ~> a -> f a
 Task.of = function(x){
@@ -45,21 +50,21 @@ Task.prototype.ap = function(that) {
       return x => {
         setter(x);
         if(fLoaded && vLoaded) {
-          delayed(function(){ cleanupBoth(allState) });
+          delayed(() => cleanupBoth(allState));
           return resolve(fn(v));
-        }else {
+        } else {
           return x;
         }
       }
     }
     
     const _this = _thisFork(guardReject, guard(x => {
-      vLoaded = true;
-      v = x;
+      fLoaded = true;
+      fn = x;     
     }));
     const _that = _thatFork(guardReject, guard(x => {
-      fLoaded = true;
-      fn = x;      
+      vLoaded = true;
+      v = x;
     }));
     
     return allState = [_this, _that];
@@ -77,6 +82,10 @@ Task.prototype.map = function(f) {
 // alt :: Alt f => f a ~> f a -> f a
 Task.prototype.alt = function (that) {
   return new Task((rej, res) => this.fork(_ => that.fork(rej, res), res));
+}
+
+Task.prototype.flat = function(that) {
+
 }
 
 module.exports = Task;

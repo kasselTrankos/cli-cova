@@ -1,16 +1,20 @@
 const {Task, Maybe, RoseTree} = require('./fp/monad');
 const { Nothing, Just} = Maybe;
-const {pipe, map, chain, ap, curry} = require('ramda');
+const {map, chain, curry, ap} = require('ramda');
+const pipe = (...fns) => x => fns.reduce((v, f) => f(v), x)
 const {readdir, lstat, statSync, existsSync} = require('fs');
-const lift2 = (f, a, b) => b.ap(a.map(f));
+const S = require('sanctuary');
+
+// const { pipe } = S;
+const lift2 = (f, a, b) => a.map(f).ap(b)
 const I = x => x;
 const append = x => xs => [...x, ...xs];
-
-// :: toTask => Array -> Task []
-const toTask = fn => xs => sequence(Task, fn, xs);
+// const ap = x => Task.ap(x)
 
 // :: prop => String -> Object -> Any
 const prop = key => obj => obj[key];
+
+const getNode = prop('node');
 
 // :: isDirectory String -> Task String
 const isDirectory = path => new Task((reject, resolve) => lstat(path, (e, stats) =>
@@ -23,28 +27,53 @@ const isDirectory = path => new Task((reject, resolve) => lstat(path, (e, stats)
 const setRoseTree = x => RoseTree.of(x);
 
 // :: read String -> Task [String]
-const read = parent => new Task((_, resolve)=> {
-  readdir(parent, (err, list = []) => err ? resolve([]) : resolve([ ...list.map(x => `${parent}/${x}`)]));
+const read = dir => new Task((_, resolve)=> {
+  readdir(dir, (err, list = []) => err ? resolve([]) : resolve([ ...list.map(x => `${dir}/${x}`)]));
 });
 
-const toRoseTree = parent => xs => Task.of(parent.concat(xs.map(x => RoseTree.of(x)))); 
-
-const sequence = (T, fn, xs) => xs.reduce((acc, x) => lift2(append, fn(x),  acc), T.of([]));
-const getNode = prop('node');
 
 
-// :: String -> Task [RoseTree]
+// :: toRoseTree -> Task [RoseTree]
+const toRoseTree = parent => xs => Task.of(parent.concat(xs.map(setReturn))); 
+
+const sequence = (T, xs) => xs.reduce((acc, x) => lift2(append, x, acc), T.of([]));
+// :: toTask => Array -> Task []
+const toTask = xs => sequence(Task, xs.map(isDirectory));
+
+
+
+const again = pipe(
+  toRoseTree,
+  // chain(c => Task.of(c))
+  // read,
+  // chain(c => console.log(c, '444444444') || toTask(isDirectory)(c))
+);
+
+
+const setReturn = pipe(
+  RoseTree.of,
+  // ap(Task.of(x => console.log(x, '2222222222222'))),
+  //x => console.log(x, '00000000') || x,
+  // getNode,
+  // again,
+  //chain(c => console.log(c, '000000000') || again(c)),
+  // chain(read),
+  // chain(toTask(isDirectory)),
+  // chain(toRoseTree(dir)),
+);
 
 const add = dir => pipe(
-  chain(toTask(isDirectory)),
-  chain(toRoseTree(dir)),
+  getNode,
+  read,
+  chain(toTask),
+ 
+  chain(again(dir)),
+  // setReturn
 );
 
 const dir = RoseTree.of('./node_modules');
 
 const program = dir => pipe(
-  getNode,
-  read,
   add(dir),
 )(dir);
 // const rerun = pipe(
@@ -52,9 +81,21 @@ const program = dir => pipe(
 //   program
 // );
 
+
+
 const data = 
   program(dir)
   .fork(e => console.error('error : ', e), console.log);
+
+// const tt = pipe(
+//   Task.of,
+//   ap(Task.of(c => console.log(c, '111111111111111') || c + 119))
+// );
+// tt(1)
+//   .fork(console.error, console.log)
+
+
+
 
 
   // Pienso que el siguiente paso esta en usar el sequence 
