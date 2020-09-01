@@ -1,12 +1,13 @@
 const {Task, Maybe, RoseTree} = require('./fp/monad');
 const { Nothing, Just} = Maybe;
-const {map, chain, curry, ap} = require('ramda');
+const {map, chain, curry, ap, lift} = require('ramda');
 const pipe = (...fns) => x => fns.reduce((v, f) => f(v), x)
 const {readdir, lstat, statSync, existsSync} = require('fs');
 const S = require('sanctuary');
+const { json } = require('jsverify');
 
 // const { pipe } = S;
-const lift2 = (f, a, b) => a.map(f).ap(b)
+const lift2 = (f, a, b) => a.map(f).ap(b);
 const I = x => x;
 const append = x => xs => [...x, ...xs];
 // const ap = x => Task.ap(x)
@@ -44,6 +45,7 @@ const toTask = xs => sequence(Task, xs.map(isDirectory));
 
 const again = pipe(
   toRoseTree,
+  
   // chain(c => Task.of(c))
   // read,
   // chain(c => console.log(c, '444444444') || toTask(isDirectory)(c))
@@ -52,7 +54,9 @@ const again = pipe(
 
 const setReturn = pipe(
   RoseTree.of,
-  // ap(Task.of(x => console.log(x, '2222222222222'))),
+  // chain(x => console.log(x, '1111111') || Task.of(add(x)))
+  // ap(Task.of(x => addx(X)))
+  // ap(Task.of(x => console.log(x, '2222222222222' || x))),
   //x => console.log(x, '00000000') || x,
   // getNode,
   // again,
@@ -75,6 +79,7 @@ const dir = RoseTree.of('./node_modules');
 
 const program = dir => pipe(
   add(dir),
+  
 )(dir);
 // const rerun = pipe(
 //   setRoseTree,
@@ -82,10 +87,11 @@ const program = dir => pipe(
 // );
 
 
+const log = x => console.log(JSON.stringify(x));
 
 const data = 
   program(dir)
-  .fork(e => console.error('error : ', e), console.log);
+  .fork(e => console.error('error : ', e), log);
 
 // const tt = pipe(
 //   Task.of,
