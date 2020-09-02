@@ -1,7 +1,7 @@
 const { readdirSync, lstatSync } = require('fs');
 const { RoseTree } = require('./fp/monad');
 const { chain } = require('fantasy-land');
-const pipe = (...fns) => x => console.log(x, '000000000000') || fns.reduceRight((acc, fn)=> fn(acc) , x);
+const pipe = (...fns) => x => fns.reduceRight((acc, fn)=> fn(acc) , x);
 
 class Monad {
   constructor (a) {
@@ -38,13 +38,21 @@ const c = i
   .chain(v => Monad.of(v - 11));
 
 // + :: getfiles String -> [String]
-const getfiles = x => readdirSync(x);
+const getfiles = x => {
+  try {
+    console.log(x, '00000000000');
+    return readdirSync(x);
+  }catch(e){
+    return [];
+  }
+}
 // + :: map [] -> 
 const map = f => xs => xs.map(f);
 const filter = f => xs => xs.filter(f);
+const addnode = x => `./node_modules/${x}`;
 
 //+ :: toRoseTree String -> RoseTRee
-const toRoseTree = d => x => RoseTree.of(`${d}/${x}`);
+const toRoseTree = d => x => push(RoseTree.of(addnode(`${x}`)));
 
 const mapToRoseTree = x => map(toRoseTree(x));
 const isDir = d => x => 
@@ -69,14 +77,17 @@ const getDirectories = d => pipe(
   filterDir(getNode(d)),
 );
 
+const push = d => d.concat(
+  proc(d)
+);
+
 const proc = d => pipe(
   getDirectories(d),
   readdir
 )(d);
 
-const push = d => d.concat(
-  proc(d)
-);
+
+
 
 const tm = push(d)
-console.log( tm)
+console.log( tm.node, JSON.stringify(tm))
