@@ -5,6 +5,7 @@ const pipe = (...fns) => x => fns.reduce((v, f) => f(v), x)
 const {readdir, lstat, statSync, existsSync} = require('fs');
 const S = require('sanctuary');
 const { json } = require('jsverify');
+const { value } = require('sanctuary');
 
 // const { pipe } = S;
 const lift2 = (f, a, b) => a.map(f).ap(b);
@@ -16,6 +17,9 @@ const append = x => xs => [...x, ...xs];
 const prop = key => obj => obj[key];
 
 const getNode = prop('node');
+const getPath = value => value.node
+  ? `${getNode(value)}/node_modules`
+  : value;
 
 // :: isDirectory String -> Task String
 const isDirectory = path => new Task((reject, resolve) => lstat(path, (e, stats) =>
@@ -23,9 +27,6 @@ const isDirectory = path => new Task((reject, resolve) => lstat(path, (e, stats)
     ? resolve([])
     : resolve([path])
 ));
-
-// :: setRoseTree String -> RoseTree
-const setRoseTree = x => RoseTree.of(x);
 
 // :: read String -> Task [String]
 const read = dir => new Task((_, resolve)=> {
@@ -35,59 +36,38 @@ const read = dir => new Task((_, resolve)=> {
 
 
 // :: toRoseTree -> Task [RoseTree]
-const toRoseTree = parent => xs => Task.of(parent.concat(xs.map(setReturn))); 
+const toRoseTree = parent => xs => Task.of(parent.concat(xs.map(RoseTree.of))); 
 
 const sequence = (T, xs) => xs.reduce((acc, x) => lift2(append, x, acc), T.of([]));
 // :: toTask => Array -> Task []
-const toTask = xs => sequence(Task, xs.map(isDirectory));
+const toTask = xs => sequence(Task, xs.map(
+  pipe(
+    getPath,
+    isDirectory
+  )
+));
 
-
-
-const again = pipe(
-  toRoseTree,
-  
-  // chain(c => Task.of(c))
-  // read,
-  // chain(c => console.log(c, '444444444') || toTask(isDirectory)(c))
-);
-
-
-const setReturn = pipe(
-  RoseTree.of,
-  // chain(x => console.log(x, '1111111') || Task.of(add(x)))
-  // ap(Task.of(x => addx(X)))
-  // ap(Task.of(x => console.log(x, '2222222222222' || x))),
-  //x => console.log(x, '00000000') || x,
-  // getNode,
-  // again,
-  //chain(c => console.log(c, '000000000') || again(c)),
-  // chain(read),
-  // chain(toTask(isDirectory)),
-  // chain(toRoseTree(dir)),
-);
+const rerurn = ({_, forest}) => toTask(forest).fork(console.log, c => console.log(c, '11111111111111'));
 
 const add = dir => pipe(
+  map(d => console.log(d, '-1111111111') || d),
   getNode,
   read,
   chain(toTask),
- 
-  chain(again(dir)),
-  // setReturn
+  chain(toRoseTree(dir)), // moldeado como rose Treee
+  ap(Task.of(rerurn))
+  // map(x => console.log(x.forest, '000000') || x)
+  // chain(x => console.log(x.forest, '000000') ||  Task.of(x))
 );
 
 const dir = RoseTree.of('./node_modules');
 
 const program = dir => pipe(
   add(dir),
-  
 )(dir);
-// const rerun = pipe(
-//   setRoseTree,
-//   program
-// );
 
-
-const log = x => console.log(JSON.stringify(x));
+// const log = x => console.log(JSON.stringify(x));
+const log = console.log
 
 const data = 
   program(dir)
