@@ -32,7 +32,7 @@ class Task {
 };
 
 const i = Monad.of(1);
-const d = RoseTree.of('./node_modules')
+const d = RoseTree.of('.')
 const c = i
   .chain(x => Monad.of(x + 12))
   .chain(v => Monad.of(v - 11));
@@ -40,8 +40,8 @@ const c = i
 // + :: getfiles String -> [String]
 const getfiles = x => {
   try {
-    console.log(x, '00000000000');
-    return readdirSync(x);
+    console.log(readdirSync(x).map(y => `${x}/${y}`), x, '0000')
+    return readdirSync(x).map(y => `${x}/${y}`);
   }catch(e){
     return [];
   }
@@ -49,10 +49,10 @@ const getfiles = x => {
 // + :: map [] -> 
 const map = f => xs => xs.map(f);
 const filter = f => xs => xs.filter(f);
-const addnode = x => `./node_modules/${x}`;
+const addNodeModlesPath = x => `${x}/node_modules`;
 
 //+ :: toRoseTree String -> RoseTRee
-const toRoseTree = d => x => push(RoseTree.of(addnode(`${x}`)));
+const toRoseTree = d => x => push(RoseTree.of(`${x}`));
 
 const mapToRoseTree = x => map(toRoseTree(x));
 const isDir = d => x => 
@@ -70,6 +70,7 @@ const prop = key => o => o[key];
 const getNode = prop('node');
 const readdir = pipe(
   getfiles,
+  addNodeModlesPath,
   getNode
 );
 const getDirectories = d => pipe(
