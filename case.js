@@ -40,7 +40,6 @@ const c = i
 // + :: getfiles String -> [String]
 const getfiles = x => {
   try {
-    console.log(readdirSync(x).map(y => `${x}/${y}`), x, '0000')
     return readdirSync(x).map(y => `${x}/${y}`);
   }catch(e){
     return [];
@@ -58,7 +57,7 @@ const mapToRoseTree = x => map(toRoseTree(x));
 const isDir = d => x => 
 {
   try{
-    return lstatSync(`${d}/${x}`).isDirectory()
+    return lstatSync(`${x}`).isDirectory()
   }catch(e){
     return false;
   }
@@ -91,4 +90,4 @@ const proc = d => pipe(
 
 
 const tm = push(d)
-console.log( tm.node, JSON.stringify(tm))
+console.log( JSON.stringify(tm))
