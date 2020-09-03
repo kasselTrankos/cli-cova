@@ -31,11 +31,6 @@ class Task {
   }
 };
 
-const i = Monad.of(1);
-const d = RoseTree.of('.')
-const c = i
-  .chain(x => Monad.of(x + 12))
-  .chain(v => Monad.of(v - 11));
 
 // + :: getfiles String -> [String]
 const getfiles = x => {
@@ -87,7 +82,7 @@ const proc = d => pipe(
 )(d);
 
 
-
+const d = RoseTree.of('.');
 
 const tm = push(d)
 console.log( JSON.stringify(tm))
