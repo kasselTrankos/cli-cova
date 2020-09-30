@@ -32,13 +32,21 @@ RoseTree.prototype.chain = function(f) {
 
 // concat :: Semogroup a => a ~> a -> a
 RoseTree.prototype.concat = function(b) {
-  return new RoseTree(this.node, [].concat(this.forest, b))
+  return new RoseTree(this.node, b.node ? [].concat(this.forest, b): this.forest)
 }
 
 
 // reduce :: Foldable f => f a ~> ((b, a) -> b, b) -> b
 RoseTree.prototype.reduce = function (f, acc) {
   return this.forest.reduce((acc, xs) => xs.reduce(f, acc), f(acc, this.node))
+}
+// alt :: Alt f => f a ~> f a -> f a
+RoseTree.prototype.alt = function(b) {
+  return this.concat(b);
+}
+
+RoseTree.empty = function() {
+  return new RoseTree(undefined, []);
 }
 
 module.exports = RoseTree;

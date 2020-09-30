@@ -1,16 +1,24 @@
 const { readdirSync, lstatSync } = require('fs');
+const daggy = require('daggy');
 const { RoseTree, Maybe } = require('./fp/monad');
 const { chain } = require('fantasy-land');
 const {Just, Nothing} = Maybe;
 const { ONCE, B, PAIR } = require('./lambda');
 
 const pipe = (...fns) => x => fns.reduceRight((acc, fn)=> fn(acc) , x);
-
+const Alt = x =>
+({
+  x,
+  concat: o => Alt(x.alt(o.x))
+});
+const t = RoseTree.empty();
+console.log(RoseTree.of(0).concat(RoseTree.empty()))
 
 const origin = RoseTree.of('/home/vera/irrigation-native');
-
+console.log(daggy);
 // + :: getfiles String -> [String]
 const getfiles = x => {
+
   try {
     return readdirSync(x).map(y => `${x}/${y}`);
   }catch(e){
@@ -29,9 +37,9 @@ const I = x => x;
 const isDir = x => 
 {
   try{
-    return lstatSync(`${x}`).isDirectory()
+    return Just(lstatSync(`${x}`).isDirectory());
   } catch(e){
-    return false;
+    return Nothing;//false;
   }
 };
 // const fromMaybeToRoseTree = 
