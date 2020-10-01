@@ -35,7 +35,7 @@ RoseTree.prototype.chain = function(f) {
 
 // concat :: Semogroup a => a ~> a -> a
 RoseTree.prototype.concat = function(b) {
-  return new RoseTree(this.node,  [...this.forest, ...b]);
+  return new RoseTree(this.node,  [...this.forest, ...b.forest]);
 }
 
 
@@ -54,6 +54,10 @@ RoseTree.empty = function() {
 
 RoseTree.prototype.append = function(xs) {
   return new RoseTree(this.node,  [...this.forest, ...xs]);
+}
+
+RoseTree.prototype.combine = function(b) {
+  return new RoseTree(this.node,  [...this.forest, ...b.forest]);
 }
 
 module.exports = RoseTree;

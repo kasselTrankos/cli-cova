@@ -47,10 +47,10 @@ const isDir = x =>
 const A = d => append(d)(proc(d));
 const prop = key => o => o[key];
 const getNode = prop('node');
-const _toRoseTree = x => RoseTree.of(`${x}`);
-const proc
- = pipe( 
-  map(B(A)(_toRoseTree)),
+const toRoseTree = x => RoseTree.of(`${x}`);
+
+const proc = pipe( 
+  map(B(A)(toRoseTree)),
   filter(isDir),
   getfiles,
   I,
