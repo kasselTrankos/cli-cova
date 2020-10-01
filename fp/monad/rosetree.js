@@ -1,4 +1,7 @@
 // Haskell 
+
+const { fun } = require("jsverify");
+
 // data RoseRoseTree a = RoseRoseTree a [RoseRoseTree a]
 function RoseTree(node, forest) {
   this.node = node;
@@ -32,7 +35,7 @@ RoseTree.prototype.chain = function(f) {
 
 // concat :: Semogroup a => a ~> a -> a
 RoseTree.prototype.concat = function(b) {
-  return new RoseTree(this.node, b.node ? [].concat(this.forest, b): this.forest)
+  return new RoseTree(this.node,  [...this.forest, ...b]);
 }
 
 
@@ -47,6 +50,10 @@ RoseTree.prototype.alt = function(b) {
 
 RoseTree.empty = function() {
   return new RoseTree(undefined, []);
+}
+
+RoseTree.prototype.append = function(xs) {
+  return new RoseTree(this.node,  [...this.forest, ...xs]);
 }
 
 module.exports = RoseTree;
