@@ -1,4 +1,5 @@
 const {map, ap, alt, of, empty} = require('fantasy-land');
+const { fun } = require('jsverify');
 var delayed = typeof setImmediate !== 'undefined'?  setImmediate
             : typeof process !== 'undefined'?       process.nextTick
             : /* otherwise */                       setTimeout
