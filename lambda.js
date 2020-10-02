@@ -37,13 +37,16 @@ const OR = p => q => p(T)(q);
 const I = x => x;
 
 
-// is0 : = ƛn.n(KF)T
+// is0 := ƛn.n(KF)T
 const is0 = n => n(K(F))(T);
+
+// SUBTITUTION := ƛfgx.fx(gx)
+const S = f => g => x => f(x)(g(x));
 
 
 
 const PAIR = a => b => f(a)(b);
 
 module.exports = {
-    ZERO, SUCC, ONCE, B, PAIR
+    ZERO, SUCC, ONCE, B, PAIR, S
 }

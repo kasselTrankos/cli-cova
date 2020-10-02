@@ -3,8 +3,9 @@ const daggy = require('daggy');
 const { RoseTree, Maybe } = require('./fp/monad');
 const { chain } = require('fantasy-land');
 const {Just, Nothing} = Maybe;
-const { ONCE, B, PAIR } = require('./lambda');
+const { ONCE, B, S } = require('./lambda');
 const { toLower } = require('sanctuary');
+const lift2 = (f, a, b) => b.ap(a.map(f));
 
 
 const pipe = (...fns) => x => fns.reduceRight((acc, fn)=> fn(acc) , x);
@@ -44,7 +45,7 @@ const isDir = x =>
     return false;
   }
 };
-const A = d => append(d)(proc(d));
+const A = d => S(append)(proc)(d);
 const prop = key => o => o[key];
 const getNode = prop('node');
 const toRoseTree = x => RoseTree.of(`${x}`);
@@ -59,5 +60,5 @@ const proc = pipe(
     
 
 
-const data =A(origin);
+const data = A(origin);
 console.log( JSON.stringify(data))

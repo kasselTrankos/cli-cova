@@ -21,7 +21,7 @@ const toTask = maybe => maybe.cata({
 const read = dir => new Task((_, resolve)=> {
   readdir(dir, function(err, list = []) {
     return err ? resolve([]) : resolve([ ...list.map(x => `${dir}/${x}`)]);
-  });
+  });sequence
 });
 const appends = x => xs => [...x, ...xs];
 
