@@ -48,5 +48,5 @@ const S = f => g => x => f(x)(g(x));
 const PAIR = a => b => f(a)(b);
 
 module.exports = {
-    ZERO, SUCC, ONCE, B, PAIR, S
+    ZERO, SUCC, ONCE, B, PAIR, S, I
 }
