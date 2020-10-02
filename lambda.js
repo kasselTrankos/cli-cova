@@ -40,7 +40,7 @@ const I = x => x;
 // is0 := ƛn.n(KF)T
 const is0 = n => n(K(F))(T);
 
-// SUBTITUTION := ƛfgx.fx(gx)
+// SUBTITUTION := ƛfgx.(fx)(gx)
 const S = f => g => x => f(x)(g(x));
 
 
