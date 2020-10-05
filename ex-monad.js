@@ -1,6 +1,6 @@
 const { Maybe, Task } = require('./fp/monad');
 const daggy = require('daggy');
-const pipe = (...fns) => x => fns.reduceRight((acc, fn)=> fn(acc) , x);
+const {readdir, stat, exists} = require('fs');
 const map = f => xs => xs.map(f);
 const chain = f => xs => xs.chain(f);
 
@@ -10,6 +10,8 @@ const Animal = daggy.taggedSum('Animal', {
     Alive : ['v'],
     Dead : []
 });
+
+
 
 
 // map :: Functor a => f a -> (a -> b) ~> b
@@ -46,12 +48,26 @@ Animal.prototype.alt = function(b) {
         Dead: _=>  b
     });
 }
+const isDirectory = s => new Task((reject, resolve)=> {
+    stat(s, (err, stats) => { 
+        if (err)  return reject([]); 
+        // console.log(`stats: ${JSON.stringify(stats)}`); 
+      
+        return (stats.isDirectory())
+            ? resolve([s])
+            : reject([])
+    }); 
+});
+
+const pipe = (...fns) => x => fns.reduceRight((acc, fn)=> fn(acc) , x);
+const empty = Task.of([]);
+const setId = x => x.alt(empty);
 const lift = (f, a, b) => a.map(f).ap(b);
-const sequence = xs =>xs.reduce((acc, x) => lift(appends, x.alt(Task.of([])), acc), Task.of([]));
+const sequence = xs =>xs.reduce((acc, x) => lift(appends, setId(x), acc), empty);
 const appends = x => xs => [...xs, ...x];
 const getIds = x => new Task((reject, resolve)=> {
     setTimeout(()=>{
-        return (x === 3) 
+        return (x >= 3 && x < 7) 
         ? reject([])
         : resolve([x + 900])
     }, 90)
@@ -59,12 +75,10 @@ const getIds = x => new Task((reject, resolve)=> {
 
 const proc1 = pipe(
     sequence,
-    map(getIds)
+    map(isDirectory)
 );
 const er = new Task((reject, resolve)=> reject(90));
+const dirs = ['./fp', './fp/monad', './0', './node_modules', './fp/mal']
 
-proc1([1,2,3,4])
+proc1(dirs)
     .fork(console.error, console.log);
-
-er.alt(getIds(9))
-    .fork(console.error, console.log)
