@@ -65,12 +65,12 @@ const sequence = xs =>xs.reduce((acc, x) => lift(appends, _default(x), acc), emp
 const appends = x => xs => [...xs, ...x];
 const read = s => new Task((reject, resolve) => {
   readdir(s, (err, files) => { 
-    return (err) ? reject([]) : resolve(files);
+    return (err) ? reject([]) : resolve(files.map(c => `${s}${c}/`));
   });
 });
 const proc1 = pipe(
-    sequence,
-    map(isDirectory)
+  sequence,
+  map(isDirectory)
 );
 const proc2 = pipe(
   chain(proc1),
