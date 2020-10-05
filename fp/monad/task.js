@@ -52,7 +52,6 @@ Task.prototype.ap = function(that) {
         setter(x);
         if(fLoaded && vLoaded) {
           delayed(() => cleanupBoth(allState));
-          console.log(fn, '11111', v)
           return resolve(fn(v));
         } else {
           return x;

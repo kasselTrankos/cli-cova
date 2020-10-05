@@ -1,8 +1,10 @@
 const { Maybe, Task } = require('./fp/monad');
 const daggy = require('daggy');
-
-const { Just, Nothing } = Maybe;
-
+const { generator } = require('jsverify');
+const pipe = (...fns) => x => fns.reduceRight((acc, fn)=> fn(acc) , x);
+const lift = (f, a, b) => a.map(f).ap(b);
+const map = f => xs => xs.map(f);
+const chain = f => xs => xs.chain(f);
 
 // console.log(Just(3).alt(Nothing))
 // console.log(Nothing.alt(Just(10)).alt(Just(9000)));
@@ -11,7 +13,7 @@ const { Just, Nothing } = Maybe;
 const gg = new Task((reject, resolve)=> {
     setTimeout(()=> resolve('op'), 100);
 });
-const gg1 = new Task((reject, resolve)=> {
+const gg1 = new Task((rejecgat, resolve)=> {
     setTimeout(()=> resolve('op222'), 100);
 });
 
@@ -56,17 +58,34 @@ Animal.prototype.alt = function(b) {
         Dead: _=>  b
     });
 }
-
+const sequence = xs =>xs.reduce((acc, x) => lift(appends, x, acc), Task.of([]));
+const appends = x => xs => [...xs, x];
 const g = Animal.Alive([12, 121]);
 const m = Animal.Alive(1);
-
-const ga = x => new Task((reject, resolve) => {
-    setTimeout(()=> resolve(x +'aa 100 sdd00 ---- '), 200);
+const ids = [1, 2, 3, 4];
+const getIds = x => new Task((reject, resolve)=> {
+    setTimeout(()=> resolve(x + 900), 100);
 });
 
-gg.chain(ga).chain(c => Task.of(m => m(c))).ap(Task.of(x => x + ' ::::: nurvo soy ')).fork(console.error, console.log);
-//fork((res,rej)=> console.log, console.error)
-// console.log(g.map(v => v.map(c=>  c* 12)));
-// console.log([g.flatmap(x => x.map(g => g * 90))])
-// console.log(m.alt(Animal.Dead).alt(Animal.Alive(90000)).flatmap(I));
 
+const ga = x => new Task((reject, resolve) => {
+    setTimeout(()=> resolve(x +'-->es el x'), 200);
+});
+
+const a = ga(1);
+const b = ga(2)
+
+const c = a.map(x => x).ap(b);
+const ba = Task.of([1, 2])
+
+
+const proc = pipe(
+    chain(ga)
+);
+const proc1 = pipe(
+    sequence,
+    map(getIds)
+);
+proc1(ids)
+    .fork(console.error, console.log)
+//proc(ba).fork(console.error, console.log)
