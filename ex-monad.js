@@ -61,24 +61,41 @@ const chain = f => xs => xs.chain(f);
 const empty = Task.of([]);
 const _default = x => x.alt(empty);
 const lift = (f, a, b) => a.map(f).ap(b);
-const sequence = xs =>xs.reduce((acc, x) => lift(appends, _default(x), acc), empty);
-const appends = x => xs => [...xs, ...x];
+const sequence = xs => console.log(xs, 'ss only i 3333333') || xs.reduce((acc, x) => console.log(x, 'ss only i 77777777') || lift(appends, _default(x), acc), empty);
+const sequence1 = xs => console.log(xs, 'ss1 999999') || xs.reduce((acc, x) => console.log(x, 'ss1 888888') || lift(appends, _default(x), acc), empty);
+const appends = x => xs => console.log(x, 'appends no lo hace !!! 2222222', xs) || [...xs, ...x];
 const read = s => new Task((reject, resolve) => {
   readdir(s, (err, files) => { 
     return (err) ? reject([]) : resolve(files.map(c => `${s}${c}/`));
   });
 });
 const proc1 = pipe(
-  sequence,
-  map(isDirectory)
+  chain(xs => console.log(xs, '555555555') || Task.of(proc2(xs))),
+  map(isDirectory),
+  sequence1,
 );
-const proc2 = pipe(
-  chain(proc1),
-  read
-);
+// function proc1(x) {
+//   pipe(
+//     sequence,
+//     map(isDirectory)
+//   )(x);
+// }
+function proc2 (x) {
+  console.log(x, '000000000');
+  return pipe(
+    // sequence,
+    map(chain(proc1)),
+    map(read)
+  )(x);
+}
+// const proc2 = pipe(
+//   chain(proc1),
+//   read
+// );
 const er = new Task((reject, resolve)=> reject(90));
 const dirs = ['./fp', './fp/monad', './0', './node_modules', './fp/mal']
-proc2('./')
-  .fork(console.error, console.log);
+const r = proc2(['./', './fp/'])
+console.log(r, '22222')
+// .fork(console.error, console.log);
 // proc1(dirs)
 //     .fork(console.error, console.log);
