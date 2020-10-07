@@ -61,7 +61,7 @@ Task.prototype.ap = function(that) {
     
     const _this = _thisFork(guardReject, guard(x => {
       fLoaded = true;
-      fn = x;     
+      fn = x;
     }));
     const _that = _thatFork(guardReject, guard(x => {
       vLoaded = true;
