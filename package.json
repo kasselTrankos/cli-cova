@@ -19,13 +19,18 @@
   },
   "homepage": "https://github.com/kasselTrankos/cycle-dir#readme",
   "dependencies": {
+    "cheerio": "1.0.0-rc.2",
     "daggy": "^1.4.0",
     "esprima": "^4.0.1",
     "fluture": "^13.0.1",
+    "fluture-sanctuary-types": "^7.0.0",
     "inquirer": "^7.3.3",
+    "node-fetch": "^2.6.1",
+    "node-nmap": "^4.0.0",
     "nodemon": "^2.0.6",
     "ramda": "^0.27.0",
     "sanctuary": "^3.1.0",
+    "sitemap-crawler": "^1.0.0",
     "yargs": "^16.2.0"
   },
   "devDependencies": {

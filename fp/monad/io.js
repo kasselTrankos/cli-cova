@@ -3,7 +3,7 @@ const daggy = require('daggy');
 
 const IO = daggy.tagged('IO', ['unsafePerformIO']);
 
-IO.prototype.map = function(f) {
+IO.prototype['fantasy-land/map'] = IO.prototype.map = function(f) {
   return IO(()=>f(this.unsafePerformIO()));
 }
 
