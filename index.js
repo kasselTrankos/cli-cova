@@ -1,21 +1,22 @@
 // fp-cli
-import {cliJSON} from './cli-actions/cli-folder';
-import { findinfiles } from './cli-actions/findincode';
-import { findPattern} from './cli-actions/find-pattern'
+
 import IO from './fp/monad/io';
-import {Executor, Action} from './fp/monad/executor';
-import { mergeRight, dissoc} from 'ramda';
+import { Action } from './fp/monad/action';
+import  Reader from './fp/monad/reader'
+import { mergeRight, dissoc, prop} from 'ramda';
 import yargs from 'yargs/yargs';
 
 const defOptions = {
-    action: 'find-json',
+    action: 'find-json'
 };
 
 
 const actions = {
-    [Action('find-json')]: () => cliJSON(path),
-    [Action('find-identify')]: () => findinfiles(),
-    [Action('find-token')] : () => findPattern()
+    [Action('find-json')]: () => import('./cli-actions/cli-folder').then(({cliJSON})=> cliJSON()),
+    [Action('find-identify')]: () => import('./cli-actions/findincode').then(({findinfiles}) => findinfiles()),
+    [Action('find-token')] : () => import('./cli-actions/find-pattern').then(({findPattern}) => findPattern()),
+    [Action('crawl-dom')] : () =>  import('./cli-actions/crawl-dom').then(({crawlDom}) => crawlDom()),
+    [Action('crawler')] : () => import('./cli-actions/crawler').then(({crawler}) => crawler()),
 
 }
 
@@ -33,10 +34,11 @@ const getArgs = argv => ArgsIO(argv)
   .map(withDefaults)
   .unsafePerformIO()
 
-// proc :: {} -> void
-const proc = args => Executor(actions)
-  .action(Action(args.action))
-  .run()
+
+const proc = Reader(x => x())
+  .map(x => prop(Action(x)) (actions) )
+  .map(prop('action'))
+  .map(getArgs)
 
 
-proc(getArgs(process.argv))
+proc.run(process.argv)
