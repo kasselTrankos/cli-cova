@@ -2,6 +2,9 @@
 import {cliJSON} from './cli-actions/cli-folder';
 import { findinfiles } from './cli-actions/findincode';
 import { findPattern} from './cli-actions/find-pattern'
+
+import { crawlDom } from './cli-actions/crawl-dom'
+
 import IO from './fp/monad/io';
 import {Executor, Action} from './fp/monad/executor';
 import { mergeRight, dissoc} from 'ramda';
@@ -13,9 +16,10 @@ const defOptions = {
 
 
 const actions = {
-    [Action('find-json')]: () => cliJSON(path),
+    [Action('find-json')]: () => cliJSON(),
     [Action('find-identify')]: () => findinfiles(),
-    [Action('find-token')] : () => findPattern()
+    [Action('find-token')] : () => findPattern(),
+    [Action('crawl-dom')] : () => crawlDom(),
 
 }
 

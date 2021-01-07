@@ -1,5 +1,5 @@
-import { prop } from 'ramda'
-import fl from 'fantasy-land'
+const { prop } = require('ramda')
+const fl = require('fantasy-land')
 // generator
 
 
