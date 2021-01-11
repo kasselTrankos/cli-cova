@@ -27,12 +27,14 @@ IO['fantasy-land/of']= IO.of = function (x) {
 // fantasy-land/ap :: Apply f => f a ~> f (a -> b) -> f b
 IO.prototype['fantasy-land/ap'] = IO.prototype.ap = function(that) {
   const b = that.unsafePerformIO();
-  console.log(b(this.unsafePerformIO()))
   return IO(()=> b(this.unsafePerformIO()));
 }
 
 IO.prototype['fantasy-land/traverse'] = IO.prototype.traverse = function(T, f) {
   return f(this.unsafePerformIO()).map(IO.of)
+}
+IO.prototype['fantasy-land/reduce'] = IO.prototype.reduce = function(f, x) {
+  return [...x, f(x, this.unsafePerformIO())]
 }
 
 
