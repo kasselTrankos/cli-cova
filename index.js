@@ -3,7 +3,7 @@ import {cliJSON} from './cli-actions/cli-folder';
 import { findinfiles } from './cli-actions/findincode';
 import { findPattern} from './cli-actions/find-pattern'
 
-import { scanPorts} from './cli-actions/scan-ports'
+import { crawlDom } from './cli-actions/crawl-dom'
 
 import IO from './fp/monad/io';
 import {Executor, Action} from './fp/monad/executor';
@@ -19,7 +19,7 @@ const actions = {
     [Action('find-json')]: () => cliJSON(),
     [Action('find-identify')]: () => findinfiles(),
     [Action('find-token')] : () => findPattern(),
-    [Action('scan-ports')] : () => scanPorts(),
+    [Action('crawl-dom')] : () => crawlDom(),
 
 }
 
