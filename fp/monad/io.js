@@ -30,11 +30,14 @@ IO.prototype['fantasy-land/ap'] = IO.prototype.ap = function(that) {
   return IO(()=> b(this.unsafePerformIO()));
 }
 
+// traverse :: Applicative f, Traversable t => t a ~> (TypeRep f, a -> f b) -> f (t b)
 IO.prototype['fantasy-land/traverse'] = IO.prototype.traverse = function(T, f) {
   return f(this.unsafePerformIO()).map(IO.of)
 }
-IO.prototype['fantasy-land/reduce'] = IO.prototype.reduce = function(f, x) {
-  return [...x, f(x, this.unsafePerformIO())]
+
+// fantasy-land/reduce :: Foldable f => f a ~> ((b, a) -> b, b) -> b
+IO.prototype['fantasy-land/reduce'] = IO.prototype.reduce = function(f, acc) {
+  return f(acc, this.unsafePerformIO())
 }
 
 

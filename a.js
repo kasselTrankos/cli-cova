@@ -26,7 +26,7 @@ const h3 = $ => $('h3').html()
 
 // const b =IO.of(x => x +1)
 const M = S.traverse(Array) (x=> x.split(' ')) (S.of(IO)('hola a to do'))
-const K = S.traverse (S.of(IO)) (x =>  S.of(IO)(x + 2)) ([1, 90])
+const K = S.traverse (S.of(IO)) (x =>  S.of(IO)(x + 2)) ([1, 90, 91, 102])
 const J = S.traverse (Array) (x => [ h2(x), h3(x) ]) (cheerioIO(code))
  
 // v['fantasy-land/ap'](u['fantasy-land/ap'](a['fantasy-land/map'](f => g => x => f(g(x))))) 
@@ -34,13 +34,11 @@ const J = S.traverse (Array) (x => [ h2(x), h3(x) ]) (cheerioIO(code))
 // v['fantasy-land/ap'](u)['fantasy-land/ap'](a) (composition)
 
 
-const v = S.of(IO)(6)
-const u = S.of(IO)(x => x + 122);
-const a = S.of(IO)(x => x +1)
-console.log(v.ap(u.ap(a.map(f => g => x => f(g(x))))).unsafePerformIO(), 'made a valir AP')
-console.log(v.ap(u).ap(a).unsafePerformIO(), ' made a valid ap')
-// console.log(M[0].unsafePerformIO())
+// const v = S.of(IO)(6)
+// const u = S.of(IO)(x => x + 122);
+// const a = S.of(IO)(x => x +1)
+// console.log(v.ap(u.ap(a.map(f => g => x => f(g(x))))).unsafePerformIO(), 'made a valir AP')
+// console.log(v.ap(u).ap(a).unsafePerformIO(), ' made a valid ap')
+console.log(M.map(x => x.unsafePerformIO()))
 console.log(K.unsafePerformIO())
-console.log(M.map(x=>x.unsafePerformIO()))
-console.log(J.map(x=> x.unsafePerformIO()))
 console.log(J)
