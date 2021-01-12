@@ -1,9 +1,19 @@
 // IO.js
 const daggy = require('daggy');
-const { curryN } = require('ramda');
+const { fun } = require('jsverify');
+const $ = require ('sanctuary-def')
+const S = require('sanctuary')
 
 // IO :: (a -> b)
 const IO = daggy.tagged('IO', ['unsafePerformIO']);
+
+const IOType = $.NullaryType
+  ('IO')
+  ('http://example.com/my-package#Maybe')
+  ([])
+  (x => x != null)
+
+const env = [IOType]
 
 IO.prototype['fantasy-land/map'] = IO.prototype.map = function(f) {
   return IO(()=>f(this.unsafePerformIO()));
@@ -32,7 +42,7 @@ IO.prototype['fantasy-land/ap'] = IO.prototype.ap = function(that) {
 
 // traverse :: Applicative f, Traversable t => t a ~> (TypeRep f, a -> f b) -> f (t b)
 IO.prototype['fantasy-land/traverse'] = IO.prototype.traverse = function(T, f) {
-  return f(this.unsafePerformIO()).map(IO.of)
+  return S.map (S.of(IO)) ( f(this.unsafePerformIO()) ) // use  haskell -> fmap
 }
 
 // fantasy-land/reduce :: Foldable f => f a ~> ((b, a) -> b, b) -> b
@@ -40,7 +50,15 @@ IO.prototype['fantasy-land/reduce'] = IO.prototype.reduce = function(f, acc) {
   return f(acc, this.unsafePerformIO())
 }
 
+IO.prototype.toString = function() {
+  console.log('joder que ten', this)
+  return this.unsafePerformIO()
+}
+
+
+IO.env = env;
 
 
 module.exports = IO;
+//module.exports = {env}
 

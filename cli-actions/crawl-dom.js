@@ -10,11 +10,12 @@ import { getDOM } from './../fp/monad/html'
 import fetch from 'node-fetch'
 import cheerio from 'cheerio'
 import IO from './../fp/monad/io'
-const S = sanctuary.create({ checkTypes: true, env: sanctuary.env.concat(env) });
+import { SSL_OP_ALL } from 'constants'
+const S = sanctuary.create({ checkTypes: true, env: sanctuary.env.concat(env).concat(IO.env) });
 
-
+console.log(IO)
 // cheerioIO :: String -> IO cheerio
-const cheerioIO = body => IO.of(cheerio.load(body));
+const cheerioIO = body => S.of (IO) (cheerio.load(body));
 
 // getURL -> String -> {} -> Throwing e *
 const getURL = x => {
@@ -51,16 +52,13 @@ const getHtmlBody = url => encaseP(fetch)(url)
   .pipe(chain(encaseP(r => r.text())))
 
 
-// getBody :: HTML -> HTML  
-const getBody = body => cheerioIO(body)
-  .map($ => $('article.post').html() )
-  .unsafePerformIO()
+// getBody :: Cheerio -> HTML  
+const getBody = $ => $('article.post').html()
 
+// getMenu :: Cheerio -> HTML  
+const getMenu = $ => $('title').html()
 
-// getMenu :: HTML -> HTML  
-const getMenu = body => cheerioIO(body)
-  .map($ => $('title').html() )
-  .unsafePerformIO()
+const toEither = value => value ? S.Right(value) :  S.Left('Empty')
 
 
 // getSitemap :: String -> Future e [ String ]
@@ -73,8 +71,11 @@ const proc = ask('Give me a site: ')
   .pipe(chain(encase(getURL)))
   .pipe(chain(getSitemap))
   .pipe(chain(x => parallel(Infinity)(x.map(getHtmlBody))))
-  .pipe(map(x => getDOM (x.map(getMenu)) (x.map(getBody)) ))
-  .pipe(chain(writefile('ret.html')))
+  .pipe(map( S.map( c => S.traverse (Array) (x => [ toEither(getBody(x)), toEither(getMenu(x)) ]) (cheerioIO(c)) ) ))
+  // .pipe(map(x => console.log(x, '111111111') || S.traverse(Array) (x => [ getBody(x), getMenu(x)]) (cheerioIO(x)) ))
+  .pipe(map(x => getDOM(x)))
+  // .pipe(map(x => getDOM (x.map(getMenu)) (x.map(getBody)) ))
+  .pipe(chain(writefile('ret.html'))) 
   .pipe(map(() => ' MADE FILE '))
 
 export const crawlDom = () => fork(log('error'))(log('response'))(proc)
