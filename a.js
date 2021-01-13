@@ -2,6 +2,7 @@ const cheerio = require('cheerio')
 const IO = require('./fp/monad/io')
 const {create, env, get} = require ('sanctuary')
 const R = require('ramda')
+const Generator = require('./utils/generator')
 const code  = '<h2 class="title">Hello world</h2><h3>hola a todos  doble</h3>' 
 
 const S = create ({checkTypes: true, env: env.concat(IO.env)})
@@ -39,14 +40,14 @@ console.log(v.ap(u.ap(a.map(f => g => x => f(g(x))))).unsafePerformIO(), 'made a
 console.log(v.ap(u).ap(a).unsafePerformIO(), ' made a valid ap')
 
 const getAnchor = t => S.pipe([
-    S.map(S.map(x => x.trim())),
-    S.map(S.map(x => x.replace(/\s/ig, '-'))),
+    S.map(x => x.trim()),
+    S.map(x => x.replace(/\s/ig, '-')),
 ])(t)
 
 const extract = e => S.reduce (acc => x => x) ('paga') (e)
 
 console.log(
-    S.map (extract) ( S.map (x => x.unsafePerformIO()) (S.map( getAnchor ) (M)) )  
+    S.map (extract) ( S.map (x => x.unsafePerformIO()) (S.map( S.map(getAnchor) ) (M)) )  
         //S.pipe( [ getAnchor, x => x.toString(), x => console.log(x) ] ) ) (M),
     
     // J,
@@ -57,3 +58,7 @@ console.log(
     // // K.unsafePerformIO(),
     // S.map( S.pipe( [ S.map(  S.map(getAnchor) ) , x => x.unsafePerformIO() ]) ) (J),
 )
+
+
+const k = Generator.of(M)
+console.log( extract(S.map(getAnchor) (k.next()).unsafePerformIO()) )

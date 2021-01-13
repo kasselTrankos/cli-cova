@@ -50,7 +50,7 @@ const getHtmlBody = url => encaseP(fetch)(url)
 
 
 // getBody :: Cheerio -> HTML  
-const getBody = $ => $('article.post').html()
+const getBody = $ => $('main[role=main]').html()
 
 // getMenu :: Cheerio -> HTML  
 const getMenu = $ => $('title').html()
@@ -70,9 +70,7 @@ const proc = ask('Give me a site: ')
   .pipe(chain(x => parallel(Infinity)(x.map(getHtmlBody))))
   .pipe(map( S.map( c => S.traverse (Array) (x => [ toEither(getBody(x)), toEither( getMenu(x)) ]) (cheerioIO(c)) ) ))
   .pipe(map(S.reduce (acc => ([body, menu]) => [ [...acc[0], body], [ ...acc[1], menu]] ) ([[], []]) ))
-  // .pipe(map(x => console.log(x, '111111111') || S.traverse(Array) (x => [ getBody(x), getMenu(x)]) (cheerioIO(x)) ))
   .pipe(map(x => getDOM(x)))
-  // .pipe(map(x => getDOM (x.map(getMenu)) (x.map(getBody)) ))
   .pipe(chain(writefile('ret.html'))) 
   .pipe(map(() => ' MADE FILE '))
 
