@@ -10,10 +10,7 @@ import { getDOM } from './../fp/monad/html'
 import fetch from 'node-fetch'
 import cheerio from 'cheerio'
 import IO from './../fp/monad/io'
-import { SSL_OP_ALL } from 'constants'
 const S = sanctuary.create({ checkTypes: true, env: sanctuary.env.concat(env).concat(IO.env) });
-
-console.log(IO)
 // cheerioIO :: String -> IO cheerio
 const cheerioIO = body => S.of (IO) (cheerio.load(body));
 
@@ -71,7 +68,8 @@ const proc = ask('Give me a site: ')
   .pipe(chain(encase(getURL)))
   .pipe(chain(getSitemap))
   .pipe(chain(x => parallel(Infinity)(x.map(getHtmlBody))))
-  .pipe(map( S.map( c => S.traverse (Array) (x => [ toEither(getBody(x)), toEither(getMenu(x)) ]) (cheerioIO(c)) ) ))
+  .pipe(map( S.map( c => S.traverse (Array) (x => [ toEither(getBody(x)), toEither( getMenu(x)) ]) (cheerioIO(c)) ) ))
+  .pipe(map(S.reduce (acc => ([body, menu]) => [ [...acc[0], body], [ ...acc[1], menu]] ) ([[], []]) ))
   // .pipe(map(x => console.log(x, '111111111') || S.traverse(Array) (x => [ getBody(x), getMenu(x)]) (cheerioIO(x)) ))
   .pipe(map(x => getDOM(x)))
   // .pipe(map(x => getDOM (x.map(getMenu)) (x.map(getBody)) ))

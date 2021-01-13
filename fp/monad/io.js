@@ -15,6 +15,9 @@ const IOType = $.NullaryType
 
 const env = [IOType]
 
+
+
+// fantasy-land/map :: Functor f => f a ~> (a -> b) -> f b
 IO.prototype['fantasy-land/map'] = IO.prototype.map = function(f) {
   return IO(()=>f(this.unsafePerformIO()));
 }
@@ -42,7 +45,7 @@ IO.prototype['fantasy-land/ap'] = IO.prototype.ap = function(that) {
 
 // traverse :: Applicative f, Traversable t => t a ~> (TypeRep f, a -> f b) -> f (t b)
 IO.prototype['fantasy-land/traverse'] = IO.prototype.traverse = function(T, f) {
-  return S.map (S.of(IO)) ( f(this.unsafePerformIO()) ) // use  haskell -> fmap
+  return S.map (x => S.of(IO) (x)) ( f(this.unsafePerformIO()) ) // use  haskell -> fmap
 }
 
 // fantasy-land/reduce :: Foldable f => f a ~> ((b, a) -> b, b) -> b
@@ -51,7 +54,6 @@ IO.prototype['fantasy-land/reduce'] = IO.prototype.reduce = function(f, acc) {
 }
 
 IO.prototype.toString = function() {
-  console.log('joder que ten', this)
   return this.unsafePerformIO()
 }
 
@@ -60,5 +62,4 @@ IO.env = env;
 
 
 module.exports = IO;
-//module.exports = {env}
 
