@@ -21,7 +21,7 @@ export const checknmap = path =>  Future((rej, res) => {
 
 
 export const getsitemap = origin => Future((rej, res)=> {
-    siteMap(origin, {isProgress : true, isLog : true}, (err, data) => err ? rej(console.err) : res(data));
+    siteMap(origin, {isProgress : false, isLog : false}, (err, data) => err ? rej(console.err) : res(data));
     return ()=> { console.log('STOP') }
 });
 

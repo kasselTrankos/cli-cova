@@ -10,6 +10,7 @@ import { getDOM } from './../fp/monad/html'
 import fetch from 'node-fetch'
 import cheerio from 'cheerio'
 import IO from './../fp/monad/io'
+import Ora from 'ora' 
 const S = sanctuary.create({ checkTypes: true, env: sanctuary.env.concat(env).concat(IO.env) });
 // cheerioIO :: String -> IO cheerio
 const cheerioIO = body => S.of (IO) (cheerio.load(body));
@@ -63,8 +64,20 @@ const getSitemap = url => resolve(url)
   .pipe(chain(encase(safeprop('origin'))))
   .pipe(chain(x => getsitemap(x)))
 
-
+  const spinner = new Ora({
+    discardStdin: false,
+    text: 'Wait please',
+    spinner: 'growVertical'
+  });
+  
+const f = x  => {
+  spinner.start()
+  return x
+}
+const g = ()=> spinner.stop()
+// const g = 
 const proc = ask('Give me a site: ')
+  .pipe(map(f))
   .pipe(chain(encase(getURL)))
   .pipe(chain(getSitemap))
   .pipe(chain(x => parallel(Infinity)(x.map(getHtmlBody))))
@@ -72,6 +85,7 @@ const proc = ask('Give me a site: ')
   .pipe(map(S.reduce (acc => ([body, menu]) => [ [...acc[0], body], [ ...acc[1], menu]] ) ([[], []]) ))
   .pipe(map(x => getDOM(x)))
   .pipe(chain(writefile('ret.html'))) 
-  .pipe(map(() => ' MADE FILE '))
+  .pipe(map(g))
+  .pipe(map(() => ' please look ret.thml '))
 
 export const crawlDom = () => fork(log('error'))(log('response'))(proc)
