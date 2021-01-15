@@ -1,8 +1,6 @@
 // Tuple
 
-const { compose } = require('fantasy-land')
-const S = require('sanctuary')
-
+const Z = require('sanctuary-type-classes')
 const tupleTypeIdent = 'my/tuple@1'
 
 var prototype = {
@@ -66,8 +64,7 @@ Tuple.snd = function(that) {
 }
 
 function Tuple$prototype$concat(that) {
-  console.log(this, that)
-    return Tuple( S.concat (this.fst) (that.fst) ) (S.concat ( this.snd) (this.snd) )
+    return Tuple( Z.concat (this.fst, that.fst) ) (Z.concat ( this.snd, that.snd) )
 }
 
 

@@ -25,7 +25,7 @@ const $Tuple = $.BinaryType
 
 const S = create ({checkTypes: true, env: env.concat( [ 
   $Sum ($.ValidNumber),
-  $Tuple ($.Any) ($.Any),
+  $Tuple ($.Unknown) ($.Unknown),
 ] )})
 
 
@@ -37,6 +37,7 @@ const S = create ({checkTypes: true, env: env.concat( [
   // .both(x => x +3)
 
 
-console.log( S.concat(Sum(9)) (Sum(0)) )
+// console.log( S.concat(Sum(9)) (Sum(0)) )
+// console.log( S.concat(Tuple ([1])([2]) ) (Tuple ([0]) ([5]) ) )
 
-console.log(S.concat( Tuple(Sum(112)) (Sum(2)) ) (Tuple(Sum(9)) (Sum(9))))
+console.log(S.concat( Tuple([112]) (Sum(2)) ) (Tuple([1,2,3]) (Sum(9))))

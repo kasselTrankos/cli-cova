@@ -30,7 +30,7 @@ function Sum (value) {
 }
 
 function Sum$prototype$concat (that) {
-    return Sum(this.value + that.value) 
+  return Sum(this.value + that.value) 
 }
 
 module.exports = Sum
