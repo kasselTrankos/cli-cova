@@ -32,6 +32,7 @@
     "ramda": "^0.27.0",
     "react": "^17.0.1",
     "sanctuary": "^3.1.0",
+    "sanctuary-type-identifiers": "^3.0.0",
     "sitemap-crawler": "^1.0.0",
     "yargs": "^16.2.0"
   },

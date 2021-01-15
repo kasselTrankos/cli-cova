@@ -1,11 +1,11 @@
 const cheerio = require('cheerio')
 const IO = require('./fp/monad/io')
-const {create, env, get} = require ('sanctuary')
+const {create, env } = require ('sanctuary')
 const R = require('ramda')
 const Generator = require('./utils/generator')
 const code  = '<h2 class="title">Hello world</h2><h3>hola a todos  doble</h3>' 
 
-const S = create ({checkTypes: true, env: env.concat(IO.env)})
+const S = create ({checkTypes: true, env: env.concat([ IO.env ])})
 
 // cheerioIO :: String -> IO cheerio
 const cheerioIO = body => S.of(IO)(cheerio.load(body))

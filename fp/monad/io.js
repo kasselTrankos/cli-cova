@@ -13,7 +13,7 @@ const IOType = $.NullaryType
   ([])
   (x => x != null)
 
-const env = [IOType]
+const env = IOType
 
 
 
