@@ -2,30 +2,18 @@
 
 const Tuple = require('./fp/monad/tuple')
 const Sum = require('./fp/monad/sum')
-const type = require ('sanctuary-type-identifiers')
-const IO = require('./fp/monad/io')
-const {create, env, sum} = require ('sanctuary')
 const $ = require('sanctuary-def')
+const {create, env, sum} = require ('sanctuary')
+
 // const S = require('sanctuary')
 
-const $Sum = $.UnaryType
-('Sum')
-('http://example.com/my-package#Sum')
-([])
-(x => type(x) === 'my/sum@1')
-(({value}) => [value] )
 
-const $Tuple = $.BinaryType
-  ('Tuple')
-  ('http://example.com/my-package#Tuple')
-  ([])
-  (x => type(x) === 'my/tuple@1')
-  ( ({fst}) => [fst] )
-  ( ({snd}) => [snd] )
+
+
 
 const S = create ({checkTypes: true, env: env.concat( [ 
-  $Sum ($.ValidNumber),
-  $Tuple ($.Unknown) ($.Unknown),
+  Sum.env ($.ValidNumber),
+  Tuple.env ($.Unknown) ($.Unknown),
 ] )})
 
 

@@ -2,7 +2,7 @@ import { ask } from './../utils/cli'
 import { fork, chain, encase, map, encaseP, resolve, ap, parallel } from 'fluture'
 import { log, toJSON } from './../utils'
 import { URL } from 'url'
-import { checknmap, getsitemap } from './../utils/scaner'
+import { getsitemap } from './../utils/scaner'
 import sanctuary from 'sanctuary'
 import { writefile, readfile } from './../utils/fs'
 import { env } from 'fluture-sanctuary-types'
@@ -11,6 +11,8 @@ import fetch from 'node-fetch'
 import cheerio from 'cheerio'
 import IO from './../fp/monad/io'
 import Ora from 'ora' 
+import Tuple from './../fp/monad/tuple'
+
 const S = sanctuary.create({ checkTypes: true, env: sanctuary.env.concat(env).concat(IO.env) });
 // cheerioIO :: String -> IO cheerio
 const cheerioIO = body => S.of (IO) (cheerio.load(body));

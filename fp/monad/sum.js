@@ -1,4 +1,6 @@
 // sum
+const $ = require('sanctuary-def')
+const type = require ('sanctuary-type-identifiers')
 
 const sumTypeIdent = 'my/sum@1'
 
@@ -23,11 +25,20 @@ var prototype = {
   /* eslint-enable key-spacing */
 }
 
+const $Sum = $.UnaryType
+  ('Sum')
+  ('http://example.com/my-package#Sum')
+  ([])
+  (x => type(x) === 'my/sum@1')
+  (({value}) => [value] )
+
 function Sum (value) {
     const sum = Object.create(prototype)
     sum.value = value
     return sum
 }
+
+Sum.env = $Sum
 
 function Sum$prototype$concat (that) {
   return Sum(this.value + that.value) 

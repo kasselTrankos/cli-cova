@@ -1,8 +1,7 @@
 // IO.js
 const daggy = require('daggy');
-const { fun } = require('jsverify');
 const $ = require ('sanctuary-def')
-const S = require('sanctuary')
+const Z = require('sanctuary-type-classes')
 
 // IO :: (a -> b)
 const IO = daggy.tagged('IO', ['unsafePerformIO']);
@@ -12,9 +11,6 @@ const IOType = $.NullaryType
   ('http://example.com/my-package#Maybe')
   ([])
   (x => x != null)
-
-const env = IOType
-
 
 
 // fantasy-land/map :: Functor f => f a ~> (a -> b) -> f b
@@ -45,7 +41,7 @@ IO.prototype['fantasy-land/ap'] = IO.prototype.ap = function(that) {
 
 // traverse :: Applicative f, Traversable t => t a ~> (TypeRep f, a -> f b) -> f (t b)
 IO.prototype['fantasy-land/traverse'] = IO.prototype.traverse = function(T, f) {
-  return S.map (x => S.of(IO) (x)) ( f(this.unsafePerformIO()) ) // use  haskell -> fmap
+  return Z.map (x => Z.of(IO, x),  f(this.unsafePerformIO()) ) // use  haskell -> fmap
 }
 
 // fantasy-land/reduce :: Foldable f => f a ~> ((b, a) -> b, b) -> b
@@ -58,7 +54,7 @@ IO.prototype.toString = function() {
 }
 
 
-IO.env = env;
+IO.env = IOType;
 
 
 module.exports = IO;
