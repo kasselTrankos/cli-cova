@@ -21,7 +21,8 @@ const S = sanctuary.create ({checkTypes: true, env: sanctuary.env.concat(env).co
   // env,
   Tuple.env ($.Unknown) ($.Unknown),
 ] )})
-// const S = sanctuary.create({ checkTypes: true, env: sanctuary.env.concat(env).concat(IO.env) });
+
+
 // cheerioIO :: String -> IO cheerio
 const cheerioIO = body => S.of (IO) (cheerio.load(body));
 
@@ -45,13 +46,11 @@ const safeprop = k => o => {
 // extractIO :: IO * -> *
 const extractIO = x => x.unsafePerformIO()
 
-
 // h1 :: Cheerio -> HTML  
 const h1 = $ => $('h1').html()
 
 // roleMain :: Cheerio -> HTML  
 const roleMain = $ => $('main[role=main]').html()
-
 
 // maybe :: * -> Just | Nothing
 const maybe = x => x ? S.Just(x) : S.Nothing
@@ -64,8 +63,8 @@ const getHtml = x =>  S.reduce(acc => x =>
   S.concat(acc) (x.snd.bimap 
     ( S.map( linkMenu(x.fst) ) ) 
     (y => S.concat(S.map (linkName) (maybe (x.fst)) ) (y))
-  ) ) 
-( Tuple( S.Just('') ) ( S.Just('') ) ) (x)
+  ) )
+( Tuple( S.Nothing ) ( S.Nothing ) ) (x)
   
   
   
@@ -86,12 +85,10 @@ const spinner = new Ora({
   }
   const g = ()=> spinner.stop()
   
-// getHtmlBody :: String -> Pair(String, html)
+
+// scrapperContent :: String -> [ Tuple (String, Tuple ( String, String) ) ]
 const scrapperContent = url => encaseP(fetch)(url)
   .pipe(chain(encaseP(r => r.text())))
-
-// scrapp :: String -> [ Tuple (String, Tuple ( String, String) ) ]
-const scrapp = url => scrapperContent(url)
   .pipe(map(getDom(url)))
   .pipe(map(extractIO))
 
@@ -99,7 +96,7 @@ const proc = ask('Give me a site: ')
   .pipe(map(f))
   .pipe(chain(encase(getURL)))
   .pipe(chain(getSitemap))
-  .pipe(chain(x => parallel(Infinity)(x.map(scrapp))))
+  .pipe(chain(x => parallel(Infinity)(x.map(scrapperContent))))
   .pipe(map(getHtml))
   .pipe(map(html))
   .pipe(chain(writefile('ret.html'))) 

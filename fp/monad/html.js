@@ -16,7 +16,7 @@ export const html =  ({ fst, snd}) => {
     <body>\
     <div class="container-fluid">
     <div class="row">
-      <div class="col-sm-3 bg-light border-right align-self-start" style="kdfjlpadding:0; position: fixed; display: block;">
+      <div class="col-sm-3 bg-light border-right align-self-start" style="kdfjlpadding:0; position: absolute; display: block;">
       ${ S.reduce (acc =>x =>x) ('')(fst)}
       </div>
       <div class="col-sm-9 offset-3">
