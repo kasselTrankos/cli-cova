@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha",
-    "cova": "babel-node index"
+    "cova": "babel-node index",
+    "b": "babel-node b"
   },
   "repository": {
     "type": "git",

@@ -3,6 +3,7 @@
 const Z = require('sanctuary-type-classes')
 const $ = require('sanctuary-def')
 const type = require ('sanctuary-type-identifiers')
+const { fun } = require('jsverify')
 
 const tupleTypeIdent = 'my/tuple@1'
 
@@ -20,8 +21,9 @@ var prototype = {
   'fantasy-land/concat':    Tuple$prototype$concat,
   'concat':                 Tuple$prototype$concat,
   'fantasy-land/concat':    Tuple$prototype$concat,
-  // 'fantasy-land/reduce':    Tuple$prototype$reduce,
+  'fantasy-land/reduce':    Tuple$prototype$reduce,
   'fantasy-land/traverse':  Tuple$prototype$traverse,
+  'fantasy-land/ap':    Tuple$prototype$ap,
   // 'fantasy-land/extend':    Tuple$prototype$extend,
   // 'fantasy-land/extract':   Tuple$prototype$extract
   /* eslint-enable key-spacing */
@@ -53,8 +55,8 @@ Tuple.env = $Tuple
 
 
 // bimap :: Tuple (a, b) => (a-> c, b -> d) -> f c, g d
-function Tuple$prototype$bimap(f, g) {
-  return Tuple (f(this.fst)) (g(this.snd))
+function Tuple$prototype$bimap(f) {
+  return g => Tuple (f(this.fst)) (g(this.snd))
 }
 
 // both :: Tuple (a,b) => (a -> b) -> f a, f b 
@@ -62,6 +64,10 @@ function Tuple$prototype$both (f) {
     return Tuple (f(this.fst)) (f(this.snd))
 }
 
+Tuple.of = function(a) {
+  console.log(a, '0000000000')
+  return Tuple()(a)
+}
 Tuple.prototype.fst = function() {
     return this.fst
 }
@@ -84,10 +90,18 @@ function Tuple$prototype$concat(that) {
 
 // traverse :: Applicative f, Traversable t => t a ~> (TypeRep f, a -> f b) -> f (t b)
 function Tuple$prototype$traverse(T, f) {
-  return Tuple () ()
+  return Z.map(Tuple (this.fst), f(this.snd))
+}
+
+// fantasy-land/reduce :: Foldable f => f a ~> ((b, a) -> b, b) -> b
+function Tuple$prototype$reduce(f, x) {
+  return f(x, this.snd )
 }
 
 
+function Tuple$prototype$ap(other) {
+  return Tuple (Z.concat (other.fst, this.fst)) (other.snd (this.snd));
+}
 
 
 module.exports = Tuple

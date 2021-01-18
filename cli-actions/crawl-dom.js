@@ -1,19 +1,27 @@
 import { ask } from './../utils/cli'
-import { fork, chain, encase, map, encaseP, resolve, ap, parallel } from 'fluture'
-import { log, toJSON } from './../utils'
+import { fork, chain, encase, map, encaseP, resolve, parallel } from 'fluture'
+import { log } from './../utils'
 import { URL } from 'url'
 import { getsitemap } from './../utils/scaner'
 import sanctuary from 'sanctuary'
-import { writefile, readfile } from './../utils/fs'
+import { writefile } from './../utils/fs'
 import { env } from 'fluture-sanctuary-types'
-import { getDOM } from './../fp/monad/html'
+import { html, linkName, linkMenu } from './../fp/monad/html'
 import fetch from 'node-fetch'
 import cheerio from 'cheerio'
 import IO from './../fp/monad/io'
 import Ora from 'ora' 
 import Tuple from './../fp/monad/tuple'
+const $ = require('sanctuary-def')
 
-const S = sanctuary.create({ checkTypes: true, env: sanctuary.env.concat(env).concat(IO.env) });
+
+const S = sanctuary.create ({checkTypes: true, env: sanctuary.env.concat(env).concat(IO.env).concat( [ 
+  // Dom.env ($.String),
+  // IO.env,
+  // env,
+  Tuple.env ($.Unknown) ($.Unknown),
+] )})
+// const S = sanctuary.create({ checkTypes: true, env: sanctuary.env.concat(env).concat(IO.env) });
 // cheerioIO :: String -> IO cheerio
 const cheerioIO = body => S.of (IO) (cheerio.load(body));
 
@@ -34,58 +42,66 @@ const safeprop = k => o => {
   throw `no existe la prop ${k} en ${o}`
 }
 
-
-const toHTML = title => content => `<div class="container">\
-  <h5>\
-    <a href="${title}" class="text-primary">${title}</a>
-  </h5>\
-  ${content}</div>`
+// extractIO :: IO * -> *
+const extractIO = x => x.unsafePerformIO()
 
 
+// h1 :: Cheerio -> HTML  
+const h1 = $ => $('h1').html()
+
+// roleMain :: Cheerio -> HTML  
+const roleMain = $ => $('main[role=main]').html()
 
 
-const getSelectors = readfile('dom.json')
-  .pipe(map(toJSON))
+// maybe :: * -> Just | Nothing
+const maybe = x => x ? S.Just(x) : S.Nothing
 
-// getHtmlBody :: String -> Pair(String, html)
-const getHtmlBody = url => encaseP(fetch)(url)
-  .pipe(chain(encaseP(r => r.text())))
+// getDOM :: String -> String -> IO [ Tuple ( String, Tuple ( String, String)) ]
+const getDom = uri => dom => S.traverse(Tuple) ( S.map( x => Tuple ( maybe(h1(x)) ) ( maybe(roleMain(x)) ) )) (Tuple (uri) (cheerioIO(dom)))
 
-
-// getBody :: Cheerio -> HTML  
-const getBody = $ => $('main[role=main]').html()
-
-// getMenu :: Cheerio -> HTML  
-const getMenu = $ => $('title').html()
-
-const toEither = value => value ? S.Right(value) :  S.Left('Empty')
-
-
+// getHtml :: [  Tuple ( String, Tuple ( String, String))] -> Tuple ( String, String )
+const getHtml = x =>  S.reduce(acc => x => 
+  S.concat(acc) (x.snd.bimap 
+    ( S.map( linkMenu(x.fst) ) ) 
+    (y => S.concat(S.map (linkName) (maybe (x.fst)) ) (y))
+  ) ) 
+( Tuple( S.Just('') ) ( S.Just('') ) ) (x)
+  
+  
+  
 // getSitemap :: String -> Future e [ String ]
 const getSitemap = url => resolve(url)
   .pipe(chain(encase(safeprop('origin'))))
   .pipe(chain(x => getsitemap(x)))
-
-  const spinner = new Ora({
-    discardStdin: false,
-    text: 'Wait please',
-    spinner: 'growVertical'
-  });
   
-const f = x  => {
-  spinner.start()
-  return x
-}
-const g = ()=> spinner.stop()
-// const g = 
+const spinner = new Ora({
+  discardStdin: false,
+  text: 'Wait please',
+  spinner: 'growVertical'
+});
+  
+  const f = x  => {
+    spinner.start()
+    return x
+  }
+  const g = ()=> spinner.stop()
+  
+// getHtmlBody :: String -> Pair(String, html)
+const scrapperContent = url => encaseP(fetch)(url)
+  .pipe(chain(encaseP(r => r.text())))
+
+// scrapp :: String -> [ Tuple (String, Tuple ( String, String) ) ]
+const scrapp = url => scrapperContent(url)
+  .pipe(map(getDom(url)))
+  .pipe(map(extractIO))
+
 const proc = ask('Give me a site: ')
   .pipe(map(f))
   .pipe(chain(encase(getURL)))
   .pipe(chain(getSitemap))
-  .pipe(chain(x => parallel(Infinity)(x.map(getHtmlBody))))
-  .pipe(map( S.map( c => S.traverse (Array) (x => [ toEither(getBody(x)), toEither( getMenu(x)) ]) (cheerioIO(c)) ) ))
-  .pipe(map(S.reduce (acc => ([body, menu]) => [ [...acc[0], body], [ ...acc[1], menu]] ) ([[], []]) ))
-  .pipe(map(x => getDOM(x)))
+  .pipe(chain(x => parallel(Infinity)(x.map(scrapp))))
+  .pipe(map(getHtml))
+  .pipe(map(html))
   .pipe(chain(writefile('ret.html'))) 
   .pipe(map(g))
   .pipe(map(() => ' please look ret.thml '))
