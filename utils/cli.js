@@ -3,7 +3,7 @@ import inquirer from 'inquirer';
 import { Future, chain, encase } from 'fluture'
 
 
-// getFromList :: String -> Array -> Async String Error 
+// getFromList :: String -> Array -> Async Error String 
 export const getFromList = question => list => Future((rej, res)=> {
     inquirer
       .prompt([{
@@ -17,7 +17,7 @@ export const getFromList = question => list => Future((rej, res)=> {
     return ()=> { console.log('CANT BE STOP')}
   });
 
-// question :: String -> Future String Error
+// question :: String -> Future Error String
 export const question = q =>  Future((rej, res) => {
     inquirer.prompt([{
       name: 'element',

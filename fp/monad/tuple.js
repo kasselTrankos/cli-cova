@@ -3,11 +3,10 @@
 const Z = require('sanctuary-type-classes')
 const $ = require('sanctuary-def')
 const type = require ('sanctuary-type-identifiers')
-const { fun } = require('jsverify')
 
 const tupleTypeIdent = 'my/tuple@1'
 
-var prototype = {
+const prototype = {
   /* eslint-disable key-spacing */
   'constructor':            Tuple,
   '@@type':                 tupleTypeIdent,
@@ -65,7 +64,6 @@ function Tuple$prototype$both (f) {
 }
 
 Tuple.of = function(a) {
-  console.log(a, '0000000000')
   return Tuple()(a)
 }
 Tuple.prototype.fst = function() {
@@ -98,7 +96,7 @@ function Tuple$prototype$reduce(f, x) {
   return f(x, this.snd )
 }
 
-
+// ap :: Tuple a => Tuple b -> b
 function Tuple$prototype$ap(other) {
   return Tuple (Z.concat (other.fst, this.fst)) (other.snd (this.snd));
 }
