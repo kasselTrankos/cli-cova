@@ -105,7 +105,6 @@ const proc = ask('Give me a site: ')
     ask('Give me a selector: ')
     .pipe(map(f))
     .pipe(chain(x => parallel (Infinity) (S.map (scrappContent(x) ) (uris) )))
-
   ))
   .pipe(map(getHtml))
   .pipe(map(html))

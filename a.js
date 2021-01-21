@@ -1,9 +1,9 @@
-const cheerio = require('cheerio')
 const IO = require('./fp/monad/io')
 const {create, env } = require ('sanctuary')
 const R = require('ramda')
 const Generator = require('./utils/generator')
 const code  = '<h2 class="title">Hello world</h2><h3>hola a todos  doble</h3>' 
+const cheerio = require('cheerio')
 
 const S = create ({checkTypes: true, env: env.concat([ IO.env ])})
 
@@ -62,3 +62,5 @@ console.log(
 
 const k = Generator.of(M)
 console.log( extract(S.map(getAnchor) (k.next()).unsafePerformIO()) )
+
+

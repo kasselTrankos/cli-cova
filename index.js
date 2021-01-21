@@ -4,6 +4,7 @@ import { findinfiles } from './cli-actions/findincode';
 import { findPattern} from './cli-actions/find-pattern'
 
 import { crawlDom } from './cli-actions/crawl-dom'
+import { crawler } from './cli-actions/crawler'
 
 import IO from './fp/monad/io';
 import {Executor, Action} from './fp/monad/executor';
@@ -20,6 +21,7 @@ const actions = {
     [Action('find-identify')]: () => findinfiles(),
     [Action('find-token')] : () => findPattern(),
     [Action('crawl-dom')] : () => crawlDom(),
+    [Action('crawler')] : () => crawler(),
 
 }
 
