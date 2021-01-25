@@ -19,8 +19,8 @@ const collectionExists = dbName => tbl => Future((rej, res)=> {
   })
   return () => { console.log ('CANT CANCEL')}
 })
-// listCollections :: String -> String -> Fluture Error [String]
-const listCollections = dbName => tbl => Future((rej, res)=> {
+// listCollections :: String -> Fluture Error [String]
+const listCollections = dbName => Future((rej, res)=> {
   MongoClient.connect(url, (err, client) => {
     if (err)  return rej(err)
     const db = client.db(dbName)
@@ -59,6 +59,6 @@ const insert = dbName => tbl => query => Future((rej, res) => {
     return () => { console.log ('CANT CANCEL')}
 })
 
-const mongo = { collectionExists, insert, find }
+const mongo = { collectionExists, insert, find, listCollections }
 
 module.exports = mongo;

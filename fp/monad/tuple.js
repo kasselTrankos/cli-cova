@@ -3,11 +3,10 @@
 const Z = require('sanctuary-type-classes')
 const $ = require('sanctuary-def')
 const type = require ('sanctuary-type-identifiers')
-const { fun } = require('jsverify')
 
 const tupleTypeIdent = 'my/tuple@1'
 
-var prototype = {
+const prototype = {
   /* eslint-disable key-spacing */
   'constructor':            Tuple,
   '@@type':                 tupleTypeIdent,
