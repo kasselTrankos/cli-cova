@@ -2,16 +2,17 @@
 
 import ReaderT from './fp/monad/readert'
 import IO from './fp/monad/io'
-import {fork, Future} from 'fluture'
+import {fork, Future, encaseP, resolve} from 'fluture'
+import fetch from 'node-fetch'
 import {listCollections, find} from './fp/monad/mongo'
 import { log } from './utils'
 import { env } from 'fluture-sanctuary-types'
-const Z = require('sanctuary-type-classes')
 import sanctuary from 'sanctuary'
-import { StateT, run, modify} from 'monastic'
+import { json } from 'jsverify'
+const Z = require('sanctuary-type-classes')
 
 const S = sanctuary.create ({checkTypes: true, env: sanctuary.env.concat(env)})
-const { pipe, pipeK, of, Either, chain } = S
+const { pipe, pipeK, of, Either, chain, map } = S
 
 // safeprop :: {} -> Either {} a
 const safeprop = k => o => o[k] ? S.Right(o[k]) : S.Left(`No existe esa key ${k} in ${JSON.stringify(o)}`)
@@ -37,6 +38,9 @@ const proc = pipe([
   // chain(tbl => find('crawl')(tbl)({}))
 ])
 
+
+const getCharacter = id => encaseP(fetch)(`https://www.breakingbadapi.com/api/characters/${id}`)
+    .pipe(Future.chain(encaseP(r => r.text())))
 
 const a = ReaderT(IO)
 // const b = ReaderT(Either)
@@ -69,3 +73,18 @@ log('-333--')(a.map(x => x + 11).map(x => x + 12).chain(x => IO.of(x + 899)).run
 
 
 // fork (log('00000000')) (log('1111111111')) (c.runWith('crawl'))
+
+
+const proc1 = pipe([
+    getCharacter,
+    map(x => JSON.parse(x)),
+    chain(pipe([
+        of(Either),
+        getSafeName,
+        eitherToFuture,
+    ])),
+])
+
+
+
+fork (log('00000000')) (log('1111111111')) (proc1(1))
