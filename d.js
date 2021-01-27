@@ -21,12 +21,19 @@ const safeprop = k => o => o[k] ? S.Right(o[k]) : S.Left(`No existe esa key ${k}
 const eitherToFuture = S.either (Future.reject) (Future.resolve)
 
 
+const booleanEither = x => f => f(x) ? S.Right(x) : S.Left(x)
+
 // getSafeName :: Either -> String String
 const getSafeName = pipeK([
     safeprop('0'),
     safeprop('name'),
 ])
 
+const path = x => o=> x.split('.').reduce( (acc, v) => chain(safeprop(v))(acc), S.Right(o))
+const _path = x => o=>  S.reduce () () (x.split('.'))
+// x.split('.').reduce( (acc, v) => chain(safeprop(v))(acc), S.Right(o))
+
+// const _path = x => o => S.traverse(S.Either, chain)
 
 const proc = pipe([
   listCollections,
@@ -49,10 +56,10 @@ const a = ReaderT(IO)
   // .map(listCollections)
 
 
-log('0000')(a.runWith(9))
-log('0000--')(a.runWith(9).unsafePerformIO())
-log('-1111--')(a.map(x => x + 11).runWith(0).unsafePerformIO() )
-log('-333--')(a.map(x => x + 11).map(x => x + 12).chain(x => IO.of(x + 899)).runWith(0).unsafePerformIO() )
+// log('0000')(a.runWith(9))
+// log('0000--')(a.runWith(9).unsafePerformIO())
+// log('-1111--')(a.map(x => x + 11).runWith(0).unsafePerformIO() )
+// log('-333--')(a.map(x => x + 11).map(x => x + 12).chain(x => IO.of(x + 899)).runWith(0).unsafePerformIO() )
 // log('1111')(a.of(110).runWith().unsafePerformIO() )
 // log('2222')(a.of(110).map(x => x +10).runWith().unsafePerformIO() )
 // log('3333')(a.of(110).ap(IO.of(x => x + 210)).runWith().unsafePerformIO() )
@@ -85,6 +92,8 @@ const proc1 = pipe([
     ])),
 ])
 
+log('0000')(path('0.user.dname')([{user: {name: 'great'}}]))
 
-
-fork (log('00000000')) (log('1111111111')) (proc1(1))
+// log('true')(booleanEither(true))
+// log('false')(booleanEither(false))
+// fork (log('00000000')) (log('1111111111')) (proc1(1))
