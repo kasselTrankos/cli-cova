@@ -4,36 +4,8 @@ const $ = require('sanctuary-def')
 const type = require ('sanctuary-type-identifiers')
 const Z = require('sanctuary-type-classes')
 const readerTTypeIdent = 'my/readerT@1'
-const { curry, curryN} = require('ramda')
-const Reader = require('./reader')
+const { curry} = require('ramda')
 
-// const prototype = {
-//     /* eslint-disable key-spacing */
-//     'constructor':            _ReaderT,
-//     '@@type':                 readerTTypeIdent,
-//     'runWith':                ReaderT$runwith,
-//     // '@@show':                 Tuple$prototype$show,
-//     // 'fantasy-land/compose':   Tuple$prototype$compose,
-//     // 'fantasy-land/map':       Tuple$prototype$map,
-//     // 'fantasy-land/bimap':     Tuple$prototype$bimap,
-//     // 'bimap':                  Tuple$prototype$bimap,
-//     'fantasy-land/map':       ReaderT$prototype$map,
-//     'map':       ReaderT$prototype$map,
-//     'of':       ReaderT$prototype$of,
-//     // 'both':                   Tuple$prototype$both,
-//     // 'fantasy-land/concat':    Tuple$prototype$concat,
-//     // 'concat':                 Tuple$prototype$concat,
-//     // 'fantasy-land/concat':    Tuple$prototype$concat,
-//     // 'fantasy-land/reduce':    Tuple$prototype$reduce,
-//     // 'fantasy-land/traverse':  Tuple$prototype$traverse,
-//     'fantasy-land/ap':    ReaderT$prototype$ap,
-//     'ap':    ReaderT$prototype$ap,
-//     'fantasy-land/chain':    ReaderT$prototype$chain,
-//     'chain':    ReaderT$prototype$chain,
-//     // 'fantasy-land/extend':    Tuple$prototype$extend,
-//     // 'fantasy-land/extract':   Tuple$prototype$extract
-//     /* eslint-enable key-spacing */
-//   }
 function _ReaderT(Monad)  {
     const readerT = Object.create({})
     readerT.m = Monad
@@ -60,26 +32,12 @@ function _ReaderT(Monad)  {
         return {
             runWith, map, chain, ap,
             ['fantasy-land/map']: map,
+            ['fantasy-land/chain']: chain,
+            ['fantasy-land/ap']: ap,
         }
     }
     return ReaderT(curry(Z.of)(Monad))
 }
-
-function ReaderT$prototype$of(v) {
-    return ReaderT(Z.of(this.m, v))
-}
-
-function ReaderT$runwith(v) {
-    console.log(this.m, v)
-    this.m(v)
-}
-
-
-
- 
-
-
-
 
 
 module.exports = _ReaderT
