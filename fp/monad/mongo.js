@@ -19,29 +19,37 @@ const collectionExists = dbName => tbl => Future((rej, res)=> {
   })
   return () => { console.log ('CANT CANCEL')}
 })
+
 // listCollections :: String -> Fluture Error [String]
 const listCollections = dbName => Future((rej, res)=> {
-  MongoClient.connect(url, (err, client) => {
+  MongoClient.connect(url,  {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    }, (err, client) => {
     if (err)  return rej(err)
     const db = client.db(dbName)
     db.listCollections().toArray((err, collections)=> {
       err ? rej(err) : res(collections)
+      client.close();
+
     })
-    client.close();
   })
   return () => { console.log ('CANT CANCEL')}
 })
 
 // find :: String -> String -> query -> Future error [{}]
 const find = dbName => tbl => query => Future((rej, res) => {
-    MongoClient.connect(url, (err, client) => {
+    MongoClient.connect(url,  {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+      }, (err, client) => {
       if (err)  return rej(err)
       const db = client.db(dbName)
       const collection = db.collection(tbl)
-      collection.find(query).toArray((err, docs) =>
+      collection.find(query).toArray((err, docs) =>{
         err ? rej(err) : res(docs)
-      ) 
-      client.close();
+        client.close();
+      }) 
     })
     return () => { console.log ('CANT CANCEL')}
 }) 
