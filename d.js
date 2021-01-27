@@ -7,12 +7,13 @@ import fetch from 'node-fetch'
 import {listCollections, find} from './fp/monad/mongo'
 import { log } from './utils'
 import { env } from 'fluture-sanctuary-types'
-import sanctuary from 'sanctuary'
-import { json } from 'jsverify'
+import sanctuary, { prop } from 'sanctuary'
 const Z = require('sanctuary-type-classes')
+import { reduce } from 'ramda'
+import Reader from './fp/monad/reader'
 
 const S = sanctuary.create ({checkTypes: true, env: sanctuary.env.concat(env)})
-const { pipe, pipeK, of, Either, chain, map } = S
+const { pipe, Either, chain, map, ap } = S
 
 // safeprop :: {} -> Either {} a
 const safeprop = k => o => o[k] ? S.Right(o[k]) : S.Left(`No existe esa key ${k} in ${JSON.stringify(o)}`)
@@ -20,80 +21,33 @@ const safeprop = k => o => o[k] ? S.Right(o[k]) : S.Left(`No existe esa key ${k}
 // eitherToFuture :: Either -> Future error a
 const eitherToFuture = S.either (Future.reject) (Future.resolve)
 
+// path :: String -> Object -> Either * String
+const path = s => o => reduce((acc, x) => chain (safeprop(x)) (acc),  S.Right(o), s.split('.'))
 
-const booleanEither = x => f => f(x) ? S.Right(x) : S.Left(x)
 
-// getSafeName :: Either -> String String
-const getSafeName = pipeK([
-    safeprop('0'),
-    safeprop('name'),
-])
 
-const path = x => o=> x.split('.').reduce( (acc, v) => chain(safeprop(v))(acc), S.Right(o))
-const _path = x => o=>  S.reduce () () (x.split('.'))
-// x.split('.').reduce( (acc, v) => chain(safeprop(v))(acc), S.Right(o))
 
-// const _path = x => o => S.traverse(S.Either, chain)
 
-const proc = pipe([
+const getCharacter = id =>
+encaseP(fetch)(`https://www.breakingbadapi.com/api/characters/${id}`)
+.pipe(Future.chain(encaseP(r => r.text())))
+
+const getTable = ReaderT(Future)
+
+
+// getTableName :: String -> Future e String
+const getTable = pipe([
   listCollections,
   chain(pipe([
-    of(Either),
-    getSafeName,
+    path('0.name'),
     eitherToFuture,
   ])),
-  // chain(tbl => find('crawl')(tbl)({}))
 ])
-
-
-const getCharacter = id => encaseP(fetch)(`https://www.breakingbadapi.com/api/characters/${id}`)
-    .pipe(Future.chain(encaseP(r => r.text())))
-
-const a = ReaderT(IO)
-// const b = ReaderT(Either)
-
-// const c = ReaderT(Future)
-  // .map(listCollections)
-
-
-// log('0000')(a.runWith(9))
-// log('0000--')(a.runWith(9).unsafePerformIO())
-// log('-1111--')(a.map(x => x + 11).runWith(0).unsafePerformIO() )
-// log('-333--')(a.map(x => x + 11).map(x => x + 12).chain(x => IO.of(x + 899)).runWith(0).unsafePerformIO() )
-// log('1111')(a.of(110).runWith().unsafePerformIO() )
-// log('2222')(a.of(110).map(x => x +10).runWith().unsafePerformIO() )
-// log('3333')(a.of(110).ap(IO.of(x => x + 210)).runWith().unsafePerformIO() )
-// log('4444')(a.of(21).chain(x => IO.of(x + 210)).runWith().unsafePerformIO() )
-
-
-
-// log('00')(b.runWith(90))
-// log('11')(b.of(90).runWith())
-// log('22')(b.of(9).map(x=> x +12).map(x => x +123).runWith())
-// log('33') (b.of(12).ap(S.Right(x => x + 111)).runWith())
-// log('44') (b.of(12).chain(x => S.Right(x + 111)).runWith())
-
-
-
-
-// fork (log('[ERR]')) (log('[OK]')) (proc('crawl'))    
-
-
-// fork (log('00000000')) (log('1111111111')) (c.runWith('crawl'))
-
-
-const proc1 = pipe([
-    getCharacter,
-    map(x => JSON.parse(x)),
-    chain(pipe([
-        of(Either),
-        getSafeName,
-        eitherToFuture,
-    ])),
-])
-
-log('0000')(path('0.user.dname')([{user: {name: 'great'}}]))
-
-// log('true')(booleanEither(true))
-// log('false')(booleanEither(false))
-// fork (log('00000000')) (log('1111111111')) (proc1(1))
+const proc = pipe([
+  S.of(Future),
+  chain(a => chain (b => find (a) (b) ({})) (getTableName(a)))
+  //   a =>  S.lift2(x => y => `[${x}] + ${y}`)  
+  //     (resolve(a))
+  //     (getTable(a))
+  ])
+fork (log('00000000')) (log('1111111111')) (proc('crawl'))
