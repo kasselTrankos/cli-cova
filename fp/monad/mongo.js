@@ -39,15 +39,15 @@ const listCollections = dbName => Future((rej, res)=> {
 
 // find :: String -> String -> query -> Future error [{}]
 const find = dbName => tbl => query => Future((rej, res) => {
-    MongoClient.connect(url,  {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-      }, (err, client) => {
-      if (err)  return rej(err)
-      const db = client.db(dbName)
-      const collection = db.collection(tbl)
-      collection.find(query).toArray((err, docs) =>{
-        err ? rej(err) : res(docs)
+  MongoClient.connect(url,  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  }, (err, client) => {
+    if (err)  return rej(err)
+    const db = client.db(dbName)
+    const collection = db.collection(tbl)
+    collection.find(query).toArray((err, docs) =>{
+      err ? rej(err) : res(docs)
         client.close();
       }) 
     })
@@ -55,14 +55,17 @@ const find = dbName => tbl => query => Future((rej, res) => {
 }) 
 // insert :: String -> String -> query -> Future error [{}]
 const insert = dbName => tbl => query => Future((rej, res) => {
-    MongoClient.connect(url, (err, client) => {
+    MongoClient.connect(url, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+      }, (err, client) => {
       if (err)  return rej(err)
       const db = client.db(dbName)
       const collection = db.collection(tbl)
-      collection.insertOne(query, (err, docs) =>
+      collection.insertOne(query, (err, docs) =>{
         err ? rej(err) : res(docs)
-      ) 
-      client.close();
+        client.close();
+      }) 
     })
     return () => { console.log ('CANT CANCEL')}
 })

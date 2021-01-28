@@ -2,14 +2,14 @@
 
 import ReaderT from './fp/monad/readert'
 import IO from './fp/monad/io'
-import {fork, Future, encaseP, resolve} from 'fluture'
+import {fork, Future, encaseP, resolve, parallel} from 'fluture'
 import fetch from 'node-fetch'
-import {listCollections, find} from './fp/monad/mongo'
+import {listCollections, find, insert} from './fp/monad/mongo'
 import { log } from './utils'
 import { env } from 'fluture-sanctuary-types'
-import sanctuary, { prop } from 'sanctuary'
+import sanctuary  from 'sanctuary'
 const Z = require('sanctuary-type-classes')
-import { reduce } from 'ramda'
+import { flatten, reduce } from 'ramda'
 import { ask } from './utils/cli';
 import cheerio from 'cheerio'
 const $ = require ('sanctuary-def');
@@ -28,11 +28,12 @@ const { pipe, Either, chain, map, ap, pipeK, filter } = S
 // safeURL -> String -> {} -> Either {} String
 const safeURL = x => {
     try {
-        return S.Right(new URL(x))
+      return S.Right(new URL(x))
     } catch (e) {
       return S.Left(' no es una URL válida ' + x)
     }
   }
+
 
 
 // safeprop :: {} -> Either {} a
@@ -45,13 +46,11 @@ const eitherToFuture = S.either (Future.reject) (Future.resolve)
 const safepath = s => o => reduce((acc, x) => chain (safeprop(x)) (acc),  S.Right(o), s.split('.'))
 
 
-const load = ({href}) => encaseP(fetch)(href)
-    .pipe(Future.chain(encaseP(r => r.text())))
 
 
 
 const getCharacter = id => encaseP(fetch)(`https://www.breakingbadapi.com/api/characters/${id}`)
-    .pipe(Future.chain(encaseP(r => r.text())))
+.pipe(Future.chain(encaseP(r => r.text())))
 
 
 // getTableName :: String -> Future e String
@@ -69,7 +68,6 @@ const proc = pipe([
   //     (resolve(a))
   //     (getTable(a))
 ])
-const validLink = ({hostname}) => x => isFullPath(hostname)(x) ||  isAbsolutePath(x)
 const isAbsolutePath = x => x.substring(0,1) === '/'
 const isFullPath = hostname => x => x.includes(hostname)
 
@@ -82,29 +80,94 @@ const toArray = $ => $.toArray()
 const attr = att => $ => $.attr(att)
 // unique -> [*] -> [*]
 const unique = x => [ ... new Set(x) ]
-const form = ({origin}) => x => isFullPath(origin)(x) ? x :  S.concat (origin) (x)
+//
 
-const getLinks = seed => pipe([
-    cheerio.load,
-    href,
-    S.compose (map(cheerio)) (toArray),
-    map(attr('href')),
-    filter(validLink (seed) ),
-    unique,
-    S.map( form(seed) )
+const dbName = 'crawl'
+const tbl = 'links'
+const allLinks = safeprop('0.links')
+
+// const obtainLink = x => console.log(x[0].links, 'lousos') || 
+//   x[0].links ? S.Right([...x[0].links, x[0].url]) : S.Left([])
+
+// const findLinks = x => S.reduce(acc => x => S.concat (acc) (obtainLink(x))) (S.Just([])) (x)
+
+
+const links = pipe([
+  flatten,
+  S.reduce(acc => x => S.concat(acc)(x.links)) ([]),
+  unique,
+  S.of(Future),
 ])
 
+const form = ({origin}) => x => isFullPath(origin)(x) ? x :  S.concat (origin) (x)
+const validLink = ({hostname}) => x => isFullPath(hostname)(x) ||  isAbsolutePath(x)
+const getLinks = seed => pipe([
+  cheerio.load,
+  href,
+  S.compose (map(cheerio)) (toArray),
+  map(attr('href')),
+  filter(validLink (seed) ),
+  unique,
+  S.map( form(seed) )
+])
+const load = x => encaseP(fetch)(x)
+.pipe(Future.chain(encaseP(r => r.text())))
+
+const safeload = pipe([
+  safeprop('href'),
+  eitherToFuture,
+  chain(load),
+])
+
+const findlink = x =>  find(dbName)(tbl)({url: x})
+
+// safefindlink :: String -> Future error [ String ]
+const safefindlink = pipe([
+  findlink,
+  chain(pipe([
+    safepath('0.links'),
+    eitherToFuture,
+  ])),
+])
+
+const loadlinks = x => chain (pipe([ getLinks(x), resolve]) ) (safeload(x))
+const insertlinks = pipeK([
+  loadlinks,
+  // links => chain( chain (S.of(Future) (links) ) (insert(dbName) (tbl) (links)) ) (links)
+])
+
+// safeloadlinks :: String -> Future error [ String ]
+const safeloadlinks = pipe([
+  safeURL,
+  eitherToFuture,
+  chain(url =>  chain   (links => chain( ()=> S.of(Future) (links) )   (insert (dbName) (tbl) ({links, url: url.href}))    )  ( loadlinks(url) ))     ,
+])
+
+const obtainLinks = pipe([
+  a => S.alt (safeloadlinks(a)) (safefindlink(a))
+])
 const proc1 = pipe([
     ask,
     chain(pipe([
-        safeURL,
-        eitherToFuture,
-        map(x => console.log(x) || x)
+      safeURL,
+      eitherToFuture,
     ])),
-    chain(x => chain (a => Future.resolve(getLinks(x)(a))) (load(x)))
+    chain(pipe([
+      safeprop('href'),
+      eitherToFuture,
+
+    ])),
+    // eitherToFuture,
+    // map(x => console.log(x, 'zero') || x)
+    chain(c => S.traverse (Future) (obtainLinks) ([c])),
+    map( pipe( [ flatten,  unique ])),
+    chain( S.traverse (Future) (obtainLinks)),
+    map( pipe( [ flatten,  unique ])),
+    chain( S.traverse (Future) (obtainLinks)),
+    map( pipe( [ flatten,  unique ])),
     // chain(a => chain (Future.resolve (getLinks(a)) ) (load(a) )),
     // chain(eitherToFuture)
 ])
-
-// fork (log('00000000')) (log('1111111111')) (proc('crawl'))
-fork (log('00000000')) (log('222222')) (proc1('Give me a site: '))
+// https://miqueridowatson.com
+fork (log('00000000')) (log('222222')) (proc1(' dame algo'))
+// fork (log('00000000')) (log('222222')) (proc1(resolve('https://miqueridowatson.com/post-work/sorteos-once/')))
