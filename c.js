@@ -73,8 +73,12 @@ import Bool from './fp/monad/boolean'
 // console.log(Reader(x => x +1).runWith(0))
 
 const isOne = Bool(x => x === 1)
-const gi = isOne.contramap(x => x.ma)
-console.log(gi.f({ma: 1}))
+const isTwo = Bool(x => x === 2)
+const gidos = isTwo.contramap(x => x.mo)
+const gi =
+  isOne.contramap(x => x.ma)
+
+console.log(gi.concat(gidos).run({ma: 1, mo: 4}))
 // getLinks(x)
 //     .pipe(
 //         chain( r => r.length 
