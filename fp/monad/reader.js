@@ -34,16 +34,16 @@ const prototype = {
 function Reader(f)  {
     const reader = Object.create(prototype)
     
-    reader.f = f
+    reader.run = f
     return reader
 }
 
 function Reader$runwith(v) {
-    return this.f(v)
+    return this.run(v)
 }
 
 function Reader$prototype$map(g) {
-    return Reader( compose (this.f) (g) )
+    return Reader( compose (this.run) (g) )
 }
 
 module.exports = Reader

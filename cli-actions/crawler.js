@@ -102,7 +102,6 @@ const getLinks = seed => pipe([
   S.compose (map(cheerio)) (toArray),
   map(attr('href')),
   filter(validLink (seed) ),
-  x => console.log(x, ' tampos ') || x,
   unique,
   S.map( form(seed) )
 ])
@@ -159,5 +158,6 @@ const proc = pipe([
   map( pipe( [ flatten,  unique ])),
 ])
 
+export const procCrawler =  proc
 export const crawler = () => fork(log('ERR'))(log('SUCCESS'))(proc('Give me a site: '))
 
