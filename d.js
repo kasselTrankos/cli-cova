@@ -13,6 +13,7 @@ import { flatten, reduce } from 'ramda'
 import { ask } from './utils/cli';
 import cheerio from 'cheerio'
 const $ = require ('sanctuary-def');
+import Compare from './fp/monad/compare'
 
 const Url = $.NullaryType
   ('Url')
@@ -24,7 +25,7 @@ const S = sanctuary.create ({
   checkTypes: true, 
   env: sanctuary.env.concat(env).concat([Url])
 })
-const { pipe, Either, chain, map, ap, pipeK, filter } = S
+const { pipe, Either, chain, map, filter } = S
 
 const dbName = 'crawl'
 const tbl = 'links'
@@ -39,7 +40,7 @@ const safeURL = x => {
   }
 }
 
-
+const prop = k => o => o[k]
 
 // safeprop :: {} -> Either {} a
 const safeprop = k => o => o[k] ? S.Right(o[k]) : S.Left(`No existe esa key ${k} in ${JSON.stringify(o)}`)
@@ -50,12 +51,6 @@ const eitherToFuture = S.either (Future.reject) (Future.resolve)
 // safepath :: String -> {} -> Either String *
 const safepath = s => o => reduce((acc, x) => chain (safeprop(x)) (acc),  S.Right(o), s.split('.'))
 
-// isAbsolutePath :: String -> Boolean
-const isAbsolutePath = x => x.substring(0,1) === '/'
-
-// isFullPath :: String -> Boolean
-const isFullPath = hostname => x => x.includes(hostname)
-
 // href :: Cheerio -> HTML  
 const href = $ => $('a')
 
@@ -64,13 +59,44 @@ const toArray = $ => $.toArray()
 
 // attr :: String -> Cheerio -> String
 const attr = att => $ => $.attr(att)
-// unique -> [*] -> [*]
 
+// unique -> [*] -> [*]
 const unique = x => [ ... new Set(x) ]
+
+// isFullPath :: String -> Boolean
+const isFullPath = hostname => x => x.includes(hostname)
+
+// isAbsolutePath :: String -> Boolean
+const isAbsolutePath = x => x.substring(0,1) === '/'
+
+// getHostname :: *
+const getHostname = prop('hostname')
 
 /// review names
 const form = ({origin}) => x => isFullPath(origin)(x) ? x :  S.concat (origin) (x)
-const validLink = ({hostname}) => x => isFullPath(hostname)(x) ||  isAbsolutePath(x)
+
+// not :: Boolean -> Boolean
+const not = x => !x
+
+// fullpath :: Compare
+const fullpath = Compare((a, b)=> a.includes(b))
+  .contramap(x => getHostname(x) || x)
+
+// absolutepath :: Compare
+const absolutepath = Compare(isAbsolutePath)
+
+// mailto :: Compare
+const mailto = Compare(x => not(/^mailto\:/.test(x)))
+
+// javascript :: Compare
+const javascript = Compare(x=> not(/^ĵavascript/.test(x)))
+
+// validlink ::  URL ->  String -> Boolean
+const validLink = url => x => fullpath.concat(absolutepath)
+  .and(mailto)
+  .and(javascript)
+  .compare(x, url) 
+
 
 // getLinks -> URL -> Strinh -> [ String ]
 const getLinks = seed => pipe([

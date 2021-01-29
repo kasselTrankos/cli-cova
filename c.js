@@ -10,6 +10,8 @@
 // import fetch from 'node-fetch'
 import Bool from './fp/monad/boolean'
 
+import Compare from './fp/monad/compare'
+
 
 // const S = sanctuary
 // const { find, insert } = mongo 
@@ -79,6 +81,25 @@ const gi =
   isOne.contramap(x => x.ma)
 
 console.log(gi.concat(gidos).run({ma: 1, mo: 4}))
+const o = {hostname: 'local'}
+
+const eq = Compare((x, y)=> console.log(x, y) || y.includes(x))
+  .contramap(x => x['hostname'] || x)
+
+console.log(eq.compare(o, 'local esjf'), '0123')
+const prop = k => o => o[k]
+const getHostname = o => prop('hostname')(o)
+
+const fullpath = Compare((a, b)=> a.includes(b))
+  .contramap(x => getHostname(x) || x)
+const absolutepath = Compare((x, y) => console.log(x.substring(0,1)==='/', '0000')|| x.substring(0, 1) === '/')
+  // .contramap(x=> x.substring(0,1))
+
+const validLink = url => x => fullpath.concat(absolutepath).compare(x, url) 
+
+const url = {hostname: 'google.es'}
+const link = '/k'
+console.log(validLink(url) (link))
 // getLinks(x)
 //     .pipe(
 //         chain( r => r.length 
