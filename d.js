@@ -134,4 +134,4 @@ const proc = pipe([
   map( pipe( [ flatten,  unique ])),
 ])
 
-fork (log('00000000')) (log('222222')) (proc(' dame algo'))
+fork (log('ERR')) (log('SUCCESS')) (proc('Give me a site: '))
