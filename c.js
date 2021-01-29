@@ -100,6 +100,8 @@ const validLink = url => x => fullpath.concat(absolutepath).compare(x, url)
 const url = {hostname: 'google.es'}
 const link = '/k'
 console.log(validLink(url) (link))
+
+console.log(new URL('https://crocks.dev/docs/crocks/Equiv.html'))
 // getLinks(x)
 //     .pipe(
 //         chain( r => r.length 

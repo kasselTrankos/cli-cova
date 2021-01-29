@@ -1,58 +1,163 @@
 // crawler
-import IO from './../fp/monad/io'
-import Tuple from './../fp/monad/tuple'
-import cheerio from 'cheerio'
-import fetch from 'node-fetch'
-import { fork, chain, encase, map, encaseP, resolve, parallel } from 'fluture'
+import Compare from './../fp/monad/compare'
+import { find, insert} from './../fp/monad/mongo'
 import { log } from './../utils'
-import sanctuary from 'sanctuary'
-const $ = require('sanctuary-def')
+import { ask } from './../utils/cli';
+import { fork, Future, encaseP, resolve } from 'fluture'
+import fetch from 'node-fetch'
+import { env } from 'fluture-sanctuary-types'
+import sanctuary  from 'sanctuary'
+const Z = require('sanctuary-type-classes')
+import { flatten, reduce } from 'ramda'
+import cheerio from 'cheerio'
+const $ = require ('sanctuary-def');
 
-
-
-const { load } = cheerio
-const seed = 'http://www.tomharding.me/2017/06/19/fantas-eel-and-specification-17/'
-const deepper = 2
+const Url = $.NullaryType
+  ('Url')
+  ('https://example.com/my-package#Url')
+  ([])
+  (x => Object.prototype.toString.call (x) === '[object URL]');
 
 const S = sanctuary.create ({
   checkTypes: true, 
-  env: sanctuary.env.concat(IO.env).concat([
-    Tuple.env ($.Unknown) ($.Unknown),
-  ])
+  env: sanctuary.env.concat(env).concat([Url])
 })
+const { pipe, Either, chain, map, filter } = S
 
-const validLink = ({hostname}) => x => isFullPath(hostname)(x) ||  isAbsolutePath(x)
-const isAbsolutePath = x => x.substring(0,1) === '/'
-const isFullPath = hostname => x => x.includes(hostname)
+const dbName = 'crawl'
+const tbl = 'links'
+
+
+// safeURL -> String -> {} -> Either {} String
+const safeURL = x => {
+  try {
+    return S.Right(new URL(x))
+  } catch (e) {
+    return S.Left(' no es una URL válida ' + x)
+  }
+}
+
+const prop = k => o => o[k]
+
+// safeprop :: {} -> Either {} a
+const safeprop = k => o => o[k] ? S.Right(o[k]) : S.Left(`No existe esa key ${k} in ${JSON.stringify(o)}`)
+
+// eitherToFuture :: Either -> Future error a
+const eitherToFuture = S.either (Future.reject) (Future.resolve)
+
+// safepath :: String -> {} -> Either String *
+const safepath = s => o => reduce((acc, x) => chain (safeprop(x)) (acc),  S.Right(o), s.split('.'))
 
 // href :: Cheerio -> HTML  
-const href = $ => $('a')
+const href = $ => $('a[href]')
 
 // toArray :: Cheerio -> []
 const toArray = $ => $.toArray()
 
 // attr :: String -> Cheerio -> String
 const attr = att => $ => $.attr(att)
+
+// unique -> [*] -> [*]
 const unique = x => [ ... new Set(x) ]
+
+// isFullPath :: String -> Boolean
+const isFullPath = hostname => x => x.includes(hostname)
+
+// isAbsolutePath :: String -> Boolean
+const isAbsolutePath = x => x.substring(0,1) === '/'
+
+// getHostname :: *
+const getHostname = prop('hostname')
+
+/// review names
 const form = ({origin}) => x => isFullPath(origin)(x) ? x :  S.concat (origin) (x)
 
-const deep = count => seed => encaseP(fetch)(seed)
-  .pipe(chain(encaseP(r => r.text())))
-  .pipe(map( getLinks (new URL(seed)) ))
+// not :: Boolean -> Boolean
+const not = x => !x
 
-const getLinks = seed => dom => S.pipe([
-  load,
+// fullpath :: Compare
+const fullpath = Compare((a, b)=> a.includes(b))
+  .contramap(x => getHostname(x) || x)
+
+// absolutepath :: Compare
+const absolutepath = Compare(isAbsolutePath)
+
+// mailto :: Compare
+const mailto = Compare(x => not(/^mailto\:/.test(x)))
+
+// javascript :: Compare
+const javascript = Compare(x=> not(/^ĵavascript/.test(x)))
+
+// validlink ::  URL ->  String -> Boolean
+const validLink = url => x => fullpath.concat(absolutepath)
+  .and(mailto)
+  .and(javascript)
+  .compare(x, url) 
+
+
+// getLinks -> URL -> Strinh -> [ String ]
+const getLinks = seed => pipe([
+  cheerio.load,
   href,
-  S.compose (S.map(cheerio)) (toArray),
-  S.map(attr('href')),
-  S.filter(validLink (new URL(seed)) ),
+  S.compose (map(cheerio)) (toArray),
+  map(attr('href')),
+  filter(validLink (seed) ),
+  x => console.log(x, ' tampos ') || x,
   unique,
   S.map( form(seed) )
-]) (dom)
+])
+const load = x => encaseP(fetch)(x)
+  .pipe(Future.chain(encaseP(r => r.text())))
 
 
-const proc = deep(0)(seed)
+// safeload :: URL -> Furure e String
+const safeload = pipe([
+  safeprop('href'),
+  eitherToFuture,
+  chain(load),
+])
+
+// safefindlink :: String -> Future error [ String ]
+const safefindlink = pipe([
+  url => find(dbName) (tbl) ({url}),
+  chain(pipe([
+    safepath('0.links'),
+    eitherToFuture,
+  ])),
+])
+
+const loadlinks = x => chain (pipe([ getLinks(x), resolve]) ) (safeload(x))
 
 
-export const crawler = () => fork(log('error'))(log('response'))(proc)
+// safeloadlinks :: String -> Future error [ String ]
+const safeloadlinks = pipe([
+  safeURL,
+  eitherToFuture,
+  chain(url =>  chain   (links => chain( ()=> S.of(Future) (links) )   (insert (dbName) (tbl) ({links, url: url.href}))    )  ( loadlinks(url) ))     ,
+])
+
+// obtainLinks:: String -> Future error [ String ]
+const obtainLinks = pipe([
+  a => S.alt (safeloadlinks(a)) (safefindlink(a))
+])
+
+const proc = pipe([
+  ask,
+  chain(pipe([
+    safeURL,
+    eitherToFuture,
+  ])),
+  chain(pipe([
+    safeprop('href'),
+    eitherToFuture,
+  ])),
+  chain(c => S.traverse (Future) (obtainLinks) ([c])),
+  map( pipe( [ flatten,  unique ])),
+  chain( S.traverse (Future) (obtainLinks)),
+  map( pipe( [ flatten,  unique ])),
+  chain( S.traverse (Future) (obtainLinks)),
+  map( pipe( [ flatten,  unique ])),
+])
+
+export const crawler = () => fork(log('ERR'))(log('SUCCESS'))(proc('Give me a site: '))
 

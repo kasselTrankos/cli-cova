@@ -52,7 +52,7 @@ const eitherToFuture = S.either (Future.reject) (Future.resolve)
 const safepath = s => o => reduce((acc, x) => chain (safeprop(x)) (acc),  S.Right(o), s.split('.'))
 
 // href :: Cheerio -> HTML  
-const href = $ => $('a')
+const href = $ => $('a[href]')
 
 // toArray :: Cheerio -> []
 const toArray = $ => $.toArray()
@@ -109,7 +109,7 @@ const getLinks = seed => pipe([
   S.map( form(seed) )
 ])
 const load = x => encaseP(fetch)(x)
-.pipe(Future.chain(encaseP(r => r.text())))
+  .pipe(Future.chain(encaseP(r => r.text())))
 
 
 // safeload :: URL -> Furure e String
