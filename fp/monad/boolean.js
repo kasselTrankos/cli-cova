@@ -6,7 +6,9 @@ const prototype = {
     'fantasy-land/contramap': bool$contramap,
     'contramap': bool$contramap,
     'fantasy-land/concat': bool$concat,
-    'concat': bool$concat
+    'concat': bool$concat,
+    'fantasy-land/empty': bool$empty,
+    'empty': bool$empty
 }
 
 function Bool(f) {
@@ -23,6 +25,9 @@ function bool$contramap(f) {
 
 function bool$concat(that) {
     return Bool(x => this.run(x) && that.run(x))
+}
+function bool$empty() {
+    return Bool( _ => true)
 }
 
 
